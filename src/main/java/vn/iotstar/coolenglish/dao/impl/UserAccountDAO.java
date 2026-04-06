@@ -14,13 +14,7 @@ public class UserAccountDAO extends AbstractDAO<UserAccount> {
         }
     }
 
-    /**
-     * Kiểm tra đăng nhập bằng email và password
-     * 
-     * @param email Email của user
-     * @param password Password của user
-     * @return UserAccount nếu thành công, null nếu thất bại
-     */
+
     public UserAccount checkLogin(String email, String password) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
@@ -38,12 +32,7 @@ public class UserAccountDAO extends AbstractDAO<UserAccount> {
         }
     }
 
-    /**
-     * Kiểm tra email đã tồn tại chưa (để tránh trùng lặp khi đăng ký)
-     * 
-     * @param email Email cần kiểm tra
-     * @return true nếu email đã tồn tại, false nếu chưa
-     */
+
     public boolean isEmailExists(String email) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
@@ -56,12 +45,7 @@ public class UserAccountDAO extends AbstractDAO<UserAccount> {
         }
     }
 
-    /**
-     * Tìm user account theo email
-     * 
-     * @param email Email cần tìm
-     * @return UserAccount nếu tồn tại, null nếu không tồn tại
-     */
+
     public UserAccount findByEmail(String email) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
