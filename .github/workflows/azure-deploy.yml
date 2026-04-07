@@ -1,12 +1,12 @@
-name: Build and deploy WAR to Azure
+name: Deploy WAR to Azure (simple)
 
 on:
   push:
     branches:
-      - Ginas559-patch-1   # đổi lại branch chính của bạn
+      - Ginas559-patch-1
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: windows-latest
 
     steps:
@@ -18,28 +18,18 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Build with Maven
+      - name: Build WAR
         run: mvn clean package -DskipTests
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Azure Login
+        uses: azure/login@v2
         with:
-          name: java-app
-          path: target/*.war
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
-  deploy:
-    runs-on: windows-latest
-    needs: build
-
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: java-app
-
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v3
         with:
           app-name: java-servlet-2026-xyz
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: '*.war'
+          package: target/*.war
