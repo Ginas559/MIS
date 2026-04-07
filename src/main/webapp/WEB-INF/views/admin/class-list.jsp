@@ -58,11 +58,12 @@
                     <td><%= clazz.getCurrentEnrollment() == null ? 0 : clazz.getCurrentEnrollment() %> / <%= clazz.getMaxCapacity() == null ? "-" : clazz.getMaxCapacity() %></td>
                     <td><span class="status-pill"><%= clazz.getStatus() %></span></td>
                     <td>
-                        <form method="post" action="${pageContext.request.contextPath}/admin/class/register" class="d-flex gap-2">
-                            <input type="hidden" name="classID" value="<%= clazz.getClassID() %>">
-                            <input type="email" name="studentEmail" class="form-control form-control-sm" placeholder="student@..." required>
-                            <button type="submit" class="btn btn-outline-secondary btn-sm">Ghi danh</button>
-                        </form>
+                        <% if (clazz.getStatus() == vn.iotstar.coolenglish.enums.ClassStatus.OPEN) { %>
+                        <a class="btn btn-outline-secondary btn-sm"
+                           href="${pageContext.request.contextPath}/admin/class/register?id=<%= clazz.getClassID() %>">Ghi danh</a>
+                        <% } else { %>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Khong san sang</button>
+                        <% } %>
                     </td>
                     <td>
                         <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/class/update?id=<%= clazz.getClassID() %>">Sua</a>
