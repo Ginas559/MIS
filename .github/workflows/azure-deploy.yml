@@ -3,7 +3,7 @@ name: Build and deploy WAR to Azure
 on:
   push:
     branches:
-      - develop
+      - develop   # đổi lại branch chính của bạn
 
 jobs:
   build:
