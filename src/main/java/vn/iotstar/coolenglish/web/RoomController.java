@@ -63,7 +63,17 @@ public class RoomController extends HttpServlet {
     }
 
     private void showList(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setAttribute("rooms", roomDAO.findAll(Room.class));
+        PaginationSupport.Page<Room> page = PaginationSupport.paginate(
+                roomDAO.findAll(Room.class),
+                req.getParameter("page"),
+                PaginationSupport.DEFAULT_PAGE_SIZE);
+
+        req.setAttribute("rooms", page.getItems());
+        req.setAttribute("currentPage", page.getCurrentPage());
+        req.setAttribute("totalPages", page.getTotalPages());
+        req.setAttribute("totalItems", page.getTotalItems());
+        req.setAttribute("pageSize", page.getPageSize());
+        req.setAttribute("paginationPath", req.getServletPath());
         forward(req, resp, "/WEB-INF/views/admin/room-list.jsp");
     }
 

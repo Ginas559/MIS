@@ -1,3 +1,4 @@
+vn\iotstar\coolenglish\integration\decorator\IntegrationLoggerDecorator.class
 vn\iotstar\coolenglish\factory\TeacherRegistration.class
 vn\iotstar\coolenglish\service\ICourseService.class
 vn\iotstar\coolenglish\entity\UserAccount.class
@@ -16,6 +17,7 @@ vn\iotstar\coolenglish\enums\StudentStatus.class
 vn\iotstar\coolenglish\enums\PaymentStatus.class
 vn\iotstar\coolenglish\enums\SessionStatus.class
 vn\iotstar\coolenglish\enums\InvoiceStatus.class
+vn\iotstar\coolenglish\integration\IPartnerIntegration.class
 vn\iotstar\coolenglish\enums\UserRole.class
 vn\iotstar\coolenglish\dao\impl\CourseDAO.class
 vn\iotstar\coolenglish\service\proxy\CourseServiceProxy.class
@@ -25,6 +27,7 @@ vn\iotstar\coolenglish\entity\EnglishClass.class
 vn\iotstar\coolenglish\entity\Course.class
 vn\iotstar\coolenglish\dao\IGenericDAO.class
 vn\iotstar\coolenglish\enums\EnrollmentStatus.class
+vn\iotstar\coolenglish\integration\adapter\IDPResultAdapter.class
 vn\iotstar\coolenglish\config\JPAUtil.class
 vn\iotstar\coolenglish\web\LoginController.class
 vn\iotstar\coolenglish\facade\EnrollmentFacade$EnrollmentResult.class
@@ -34,18 +37,26 @@ vn\iotstar\coolenglish\web\VerifyOtpController.class
 vn\iotstar\coolenglish\web\ClassController.class
 vn\iotstar\coolenglish\entity\Person.class
 vn\iotstar\coolenglish\factory\UserRegistration.class
+vn\iotstar\coolenglish\web\PaginationSupport$Page.class
+vn\iotstar\coolenglish\integration\adapter\IDPExternalSystem.class
 vn\iotstar\coolenglish\dao\impl\EnrollmentDAO.class
+vn\iotstar\coolenglish\integration\proxy\IntegrationSecurityProxy.class
 vn\iotstar\coolenglish\entity\Staff.class
 vn\iotstar\coolenglish\enums\ClassStatus.class
 vn\iotstar\coolenglish\dao\impl\RoomDAO.class
 vn\iotstar\coolenglish\web\PendingSignupData.class
+vn\iotstar\coolenglish\factory\PartnerIntegrationFactory.class
 vn\iotstar\coolenglish\enums\AttendanceStatus.class
 vn\iotstar\coolenglish\state\classroom\ClassStateFactory.class
+vn\iotstar\coolenglish\web\PaginationSupport.class
 vn\iotstar\coolenglish\factory\StaffRegistration.class
 vn\iotstar\coolenglish\web\LogoutController.class
 vn\iotstar\coolenglish\util\EmailUtils.class
 vn\iotstar\coolenglish\state\classroom\OpenClassState.class
+vn\iotstar\coolenglish\dao\impl\ExamResultDAO.class
+vn\iotstar\coolenglish\web\PartnerIntegrationController.class
 vn\iotstar\coolenglish\entity\Invoice.class
+vn\iotstar\coolenglish\entity\ExamResult.class
 vn\iotstar\coolenglish\entity\Student.class
 vn\iotstar\coolenglish\web\AuthenticationFilter.class
 vn\iotstar\coolenglish\dao\impl\EnglishClassDAO.class

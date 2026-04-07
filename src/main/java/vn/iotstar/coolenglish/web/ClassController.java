@@ -73,7 +73,17 @@ public class ClassController extends HttpServlet {
     }
 
     private void showList(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setAttribute("classes", englishClassDAO.findAll(EnglishClass.class));
+        PaginationSupport.Page<EnglishClass> page = PaginationSupport.paginate(
+                englishClassDAO.findAll(EnglishClass.class),
+                req.getParameter("page"),
+                PaginationSupport.DEFAULT_PAGE_SIZE);
+
+        req.setAttribute("classes", page.getItems());
+        req.setAttribute("currentPage", page.getCurrentPage());
+        req.setAttribute("totalPages", page.getTotalPages());
+        req.setAttribute("totalItems", page.getTotalItems());
+        req.setAttribute("pageSize", page.getPageSize());
+        req.setAttribute("paginationPath", req.getServletPath());
         forward(req, resp, "/WEB-INF/views/admin/class-list.jsp");
     }
 

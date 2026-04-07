@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: vn.iotstar.coolenglish.facade.EnrollmentFacadeTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.216 s -- in vn.iotstar.coolenglish.facade.EnrollmentFacadeTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.22 s -- in vn.iotstar.coolenglish.facade.EnrollmentFacadeTest
