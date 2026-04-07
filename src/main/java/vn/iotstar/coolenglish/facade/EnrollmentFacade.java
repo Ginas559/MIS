@@ -11,8 +11,11 @@ import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Enrollment;
 import vn.iotstar.coolenglish.entity.Invoice;
 import vn.iotstar.coolenglish.entity.Student;
+import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.EnrollmentStatus;
 import vn.iotstar.coolenglish.enums.InvoiceStatus;
+import vn.iotstar.coolenglish.enums.StudentStatus;
+import vn.iotstar.coolenglish.enums.UserRole;
 
 /**
  * EnrollmentFacade - Singleton Facade Pattern
@@ -86,14 +89,7 @@ public class EnrollmentFacade {
                 throw new IllegalStateException("Lớp học đã đầy. Không thể ghi danh.");
             }
 
-            TypedQuery<Student> studentQuery = em.createQuery(
-                    "SELECT s FROM Student s WHERE s.email = :email", Student.class);
-            studentQuery.setParameter("email", normalizedEmail);
-            java.util.List<Student> students = studentQuery.getResultList();
-            Student student = students.isEmpty() ? null : students.get(0);
-            if (student == null) {
-                throw new IllegalArgumentException("Học viên không tồn tại: " + normalizedEmail);
-            }
+            Student student = resolveStudentByEmail(em, normalizedEmail);
 
             TypedQuery<Long> duplicateQuery = em.createQuery(
                     "SELECT COUNT(e) FROM Enrollment e WHERE e.englishClass.classID = :classID AND e.student.id = :studentId",
@@ -161,6 +157,68 @@ public class EnrollmentFacade {
 
     private String generateInvoiceNumber() {
         return "INV-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+
+    private Student resolveStudentByEmail(EntityManager em, String email) {
+        TypedQuery<UserAccount> accountQuery = em.createQuery(
+                "SELECT ua FROM UserAccount ua WHERE ua.email = :email", UserAccount.class);
+        accountQuery.setParameter("email", email);
+        java.util.List<UserAccount> accounts = accountQuery.getResultList();
+        UserAccount account = accounts.isEmpty() ? null : accounts.get(0);
+
+        if (account != null) {
+            if (account.getRole() != UserRole.STUDENT) {
+                throw new IllegalArgumentException("Email co tai khoan nhung role khong hop le de ghi danh (chi chap nhan STUDENT).");
+            }
+
+            Student student = findStudentProfile(em, account.getRelatedID(), email);
+            if (student != null) {
+                return student;
+            }
+
+            // Backfill ho so hoc vien cho tai khoan STUDENT cu chua duoc lien ket person.
+            return createStudentProfile(em, account);
+        }
+
+        Student legacyStudent = findStudentByEmail(em, email);
+        if (legacyStudent != null) {
+            return legacyStudent;
+        }
+
+        throw new IllegalArgumentException("Email chua dang ky trong he thong.");
+    }
+
+    private Student findStudentProfile(EntityManager em, Long relatedID, String email) {
+        if (relatedID != null) {
+            Student linkedStudent = em.find(Student.class, relatedID);
+            if (linkedStudent != null) {
+                return linkedStudent;
+            }
+        }
+        return findStudentByEmail(em, email);
+    }
+
+    private Student findStudentByEmail(EntityManager em, String email) {
+        TypedQuery<Student> studentQuery = em.createQuery(
+                "SELECT s FROM Student s WHERE s.email = :email", Student.class);
+        studentQuery.setParameter("email", email);
+        java.util.List<Student> students = studentQuery.getResultList();
+        return students.isEmpty() ? null : students.get(0);
+    }
+
+    private Student createStudentProfile(EntityManager em, UserAccount account) {
+        Student student = new Student();
+        String username = account.getUsername();
+        student.setFullName(username == null || username.isBlank() ? account.getEmail() : username);
+        student.setEmail(account.getEmail());
+        student.setStudentID("STU-" + System.currentTimeMillis());
+        student.setStatus(StudentStatus.ACTIVE);
+        em.persist(student);
+        em.flush();
+
+        account.setRelatedID(student.getId());
+        em.merge(account);
+        return student;
     }
 
     // ========== RESULT CLASS ==========

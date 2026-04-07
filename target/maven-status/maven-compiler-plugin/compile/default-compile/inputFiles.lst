@@ -4,6 +4,7 @@ D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\dao\impl\Abstr
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\dao\impl\CourseDAO.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\dao\impl\EnglishClassDAO.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\dao\impl\EnrollmentDAO.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\dao\impl\ExamResultDAO.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\dao\impl\InvoiceDAO.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\dao\impl\RoomDAO.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\dao\impl\StudentDAO.java
@@ -11,6 +12,7 @@ D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\dao\impl\UserA
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\entity\Course.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\entity\EnglishClass.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\entity\Enrollment.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\entity\ExamResult.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\entity\Invoice.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\entity\Person.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\entity\Room.java
@@ -29,11 +31,17 @@ D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\enums\StudentS
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\enums\TeacherStatus.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\enums\UserRole.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\facade\EnrollmentFacade.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\factory\PartnerIntegrationFactory.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\factory\SecurityAccessFactory.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\factory\StaffRegistration.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\factory\StudentRegistration.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\factory\TeacherRegistration.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\factory\UserRegistration.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\integration\adapter\IDPExternalSystem.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\integration\adapter\IDPResultAdapter.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\integration\decorator\IntegrationLoggerDecorator.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\integration\IPartnerIntegration.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\integration\proxy\IntegrationSecurityProxy.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\service\ClassEnrollmentService.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\service\ICourseService.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\service\impl\CourseServiceImpl.java
@@ -49,6 +57,8 @@ D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\web\ClassContr
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\web\CourseController.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\web\LoginController.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\web\LogoutController.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\web\PaginationSupport.java
+D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\web\PartnerIntegrationController.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\web\PendingSignupData.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\web\RoomController.java
 D:\cc_ltw\workspace\DoAN\MIS\src\main\java\vn\iotstar\coolenglish\web\SignupController.java

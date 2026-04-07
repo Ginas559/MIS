@@ -22,9 +22,11 @@ import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Enrollment;
 import vn.iotstar.coolenglish.entity.Invoice;
 import vn.iotstar.coolenglish.entity.Student;
+import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.ClassStatus;
 import vn.iotstar.coolenglish.enums.InvoiceStatus;
 import vn.iotstar.coolenglish.enums.StudentStatus;
+import vn.iotstar.coolenglish.enums.UserRole;
 
 class EnrollmentFacadeTest {
 
@@ -100,6 +102,113 @@ class EnrollmentFacadeTest {
             }
         } finally {
             purgeByClassAndStudent(data.classID, data.studentEmail, data.courseID);
+        }
+    }
+
+    @Test
+    void shouldRejectEnrollmentWhenEmailBelongsToNonStudentRole() {
+        TestData data = createClassOnly("SCN_ROLE_", ClassStatus.OPEN, 3, 0);
+        String nonStudentEmail = "role_invalid_" + UUID.randomUUID().toString().substring(0, 8).toLowerCase() + "@test.local";
+        try {
+            createUserAccount(nonStudentEmail, UserRole.STAFF);
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                    () -> EnrollmentFacade.getInstance().enrollStudent(data.classID, nonStudentEmail));
+
+            assertTrue(ex.getMessage().contains("role khong hop le"));
+        } finally {
+            purgeByClassAndStudent(data.classID, nonStudentEmail, data.courseID);
+            deleteUserAccount(nonStudentEmail);
+        }
+    }
+
+    @Test
+    void shouldRejectEnrollmentWhenEmailIsNotRegistered() {
+        TestData data = createClassOnly("SCN_MAIL_", ClassStatus.OPEN, 3, 0);
+        String unknownEmail = "unknown_" + UUID.randomUUID().toString().substring(0, 8).toLowerCase() + "@test.local";
+        try {
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                    () -> EnrollmentFacade.getInstance().enrollStudent(data.classID, unknownEmail));
+
+            assertTrue(ex.getMessage().contains("chua dang ky"));
+        } finally {
+            purgeByClassAndStudent(data.classID, unknownEmail, data.courseID);
+        }
+    }
+
+    private void createUserAccount(String email, UserRole role) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            UserAccount account = new UserAccount(email, "user_" + System.currentTimeMillis(), "123456", role);
+            em.persist(account);
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
+    private void deleteUserAccount(String email) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.createNativeQuery("DELETE FROM user_account WHERE email = ?")
+                    .setParameter(1, email)
+                    .executeUpdate();
+            em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
+    private TestData createClassOnly(String prefix, ClassStatus classStatus, int maxCapacity, int currentEnrollment) {
+        String token = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String courseID = prefix + "COURSE_" + token;
+        String classID = prefix + "CLASS_" + token;
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            Course course = new Course();
+            course.setCourseID(courseID);
+            course.setCourseName("Facade Test Course");
+            course.setDescription("test");
+            course.setLevel("BEGINNER");
+            course.setDuration(20);
+            course.setFee(1234567.0);
+            course.setStatus("ACTIVE");
+            em.persist(course);
+
+            EnglishClass clazz = new EnglishClass();
+            clazz.setClassID(classID);
+            clazz.setClassName("Facade Test Class");
+            clazz.setCourseID(courseID);
+            clazz.setMaxCapacity(maxCapacity);
+            clazz.setCurrentEnrollment(currentEnrollment);
+            clazz.setStatus(classStatus);
+            clazz.updateInternalState();
+            em.persist(clazz);
+
+            em.getTransaction().commit();
+            return new TestData(courseID, classID, "", 1234567.0);
+        } catch (RuntimeException e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
         }
     }
 

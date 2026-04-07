@@ -112,7 +112,17 @@ public class CourseController extends HttpServlet {
     private void showList(HttpServletRequest req, HttpServletResponse resp, UserAccount currentUser, boolean managementView)
             throws ServletException, IOException {
         ICourseService courseService = securityAccessFactory.getCourseService(currentUser);
-        req.setAttribute("courses", courseService.findAll());
+        PaginationSupport.Page<Course> page = PaginationSupport.paginate(
+                courseService.findAll(),
+                req.getParameter("page"),
+                PaginationSupport.DEFAULT_PAGE_SIZE);
+
+        req.setAttribute("courses", page.getItems());
+        req.setAttribute("currentPage", page.getCurrentPage());
+        req.setAttribute("totalPages", page.getTotalPages());
+        req.setAttribute("totalItems", page.getTotalItems());
+        req.setAttribute("pageSize", page.getPageSize());
+        req.setAttribute("paginationPath", req.getServletPath());
         req.setAttribute("managementView", managementView);
         req.setAttribute("canManage", canManageCourse(currentUser));
         forward(req, resp, "/WEB-INF/views/admin/course-list.jsp");

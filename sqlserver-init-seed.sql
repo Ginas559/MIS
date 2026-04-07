@@ -183,6 +183,21 @@ BEGIN
 END;
 GO
 
+IF OBJECT_ID(N'dbo.ExamResults', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ExamResults (
+        id BIGINT IDENTITY(1,1) NOT NULL,
+        partnerCode NVARCHAR(50) NOT NULL,
+        studentEmail NVARCHAR(100) NOT NULL,
+        examCode NVARCHAR(50) NOT NULL,
+        score FLOAT NOT NULL,
+        takenAt DATE NOT NULL,
+        syncedAt DATETIME2 NOT NULL,
+        CONSTRAINT PK_ExamResults PRIMARY KEY (id)
+    );
+END;
+GO
+
 /* -----------------------------
    2) SEED USER ACCOUNTS
    Passwords are plain text because current login checks plain text.

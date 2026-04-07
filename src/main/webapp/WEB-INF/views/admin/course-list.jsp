@@ -9,6 +9,15 @@
     boolean managementView = Boolean.TRUE.equals(request.getAttribute("managementView"));
     boolean canManage = currentUser != null
             && (currentUser.getRole() == UserRole.ADMIN || currentUser.getRole() == UserRole.STAFF);
+    Integer currentPage = (Integer) request.getAttribute("currentPage");
+    Integer totalPages = (Integer) request.getAttribute("totalPages");
+    Integer totalItems = (Integer) request.getAttribute("totalItems");
+    String paginationPath = (String) request.getAttribute("paginationPath");
+
+    if (currentPage == null) currentPage = 1;
+    if (totalPages == null) totalPages = 1;
+    if (totalItems == null) totalItems = 0;
+    if (paginationPath == null || paginationPath.isBlank()) paginationPath = "/admin/course";
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -27,6 +36,7 @@
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/admin/course">Quan ly khoa hoc</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/room">Quan ly phong hoc</a>
                 <a class="btn btn-outline-dark" href="${pageContext.request.contextPath}/admin/class">Quan ly lop hoc</a>
+                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
             <% } %>
             <form method="post" action="${pageContext.request.contextPath}/logout">
                 <button type="submit" class="btn btn-outline-dark">Dang xuat</button>
@@ -52,6 +62,7 @@
             <a class="btn btn-sky btn-sm" href="${pageContext.request.contextPath}/admin/course/add">Them khoa hoc</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/room">Danh sach phong hoc</a>
             <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/admin/class">Danh sach lop hoc</a>
+            <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
         </div>
 
         <form method="post" action="${pageContext.request.contextPath}/admin/course/update-fee" class="row g-2 mb-3">
@@ -117,6 +128,25 @@
                 </tbody>
             </table>
         </div>
+
+        <% if (totalPages > 1) { %>
+        <nav aria-label="Course pagination" class="mt-3">
+            <ul class="pagination mb-0">
+                <li class="page-item <%= currentPage <= 1 ? "disabled" : "" %>">
+                    <a class="page-link" href="${pageContext.request.contextPath}<%= paginationPath %>?page=<%= currentPage - 1 %>">Truoc</a>
+                </li>
+                <% for (int pageNumber = 1; pageNumber <= totalPages; pageNumber++) { %>
+                <li class="page-item <%= pageNumber == currentPage ? "active" : "" %>">
+                    <a class="page-link" href="${pageContext.request.contextPath}<%= paginationPath %>?page=<%= pageNumber %>"><%= pageNumber %></a>
+                </li>
+                <% } %>
+                <li class="page-item <%= currentPage >= totalPages ? "disabled" : "" %>">
+                    <a class="page-link" href="${pageContext.request.contextPath}<%= paginationPath %>?page=<%= currentPage + 1 %>">Sau</a>
+                </li>
+            </ul>
+        </nav>
+        <p class="app-subtle mb-0 mt-2">Tong: <%= totalItems %> ban ghi (30 dong/trang).</p>
+        <% } %>
     </div>
 </div>
 <script src="${pageContext.request.contextPath}/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

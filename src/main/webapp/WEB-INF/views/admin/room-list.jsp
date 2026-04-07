@@ -8,6 +8,15 @@
     UserAccount currentUser = (UserAccount) session.getAttribute("user");
     boolean canManage = currentUser != null
             && (currentUser.getRole() == UserRole.ADMIN || currentUser.getRole() == UserRole.STAFF);
+    Integer currentPage = (Integer) request.getAttribute("currentPage");
+    Integer totalPages = (Integer) request.getAttribute("totalPages");
+    Integer totalItems = (Integer) request.getAttribute("totalItems");
+    String paginationPath = (String) request.getAttribute("paginationPath");
+
+    if (currentPage == null) currentPage = 1;
+    if (totalPages == null) totalPages = 1;
+    if (totalItems == null) totalItems = 0;
+    if (paginationPath == null || paginationPath.isBlank()) paginationPath = "/admin/room";
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -25,6 +34,7 @@
             <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/admin/course">Quan ly khoa hoc</a>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/course">Danh sach khoa hoc</a>
             <a class="btn btn-outline-dark" href="${pageContext.request.contextPath}/admin/class">Quan ly lop hoc</a>
+            <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
         </div>
     </div>
 </nav>
@@ -80,6 +90,25 @@
                 </tbody>
             </table>
         </div>
+
+        <% if (totalPages > 1) { %>
+        <nav aria-label="Room pagination" class="mt-3">
+            <ul class="pagination mb-0">
+                <li class="page-item <%= currentPage <= 1 ? "disabled" : "" %>">
+                    <a class="page-link" href="${pageContext.request.contextPath}<%= paginationPath %>?page=<%= currentPage - 1 %>">Truoc</a>
+                </li>
+                <% for (int pageNumber = 1; pageNumber <= totalPages; pageNumber++) { %>
+                <li class="page-item <%= pageNumber == currentPage ? "active" : "" %>">
+                    <a class="page-link" href="${pageContext.request.contextPath}<%= paginationPath %>?page=<%= pageNumber %>"><%= pageNumber %></a>
+                </li>
+                <% } %>
+                <li class="page-item <%= currentPage >= totalPages ? "disabled" : "" %>">
+                    <a class="page-link" href="${pageContext.request.contextPath}<%= paginationPath %>?page=<%= currentPage + 1 %>">Sau</a>
+                </li>
+            </ul>
+        </nav>
+        <p class="app-subtle mb-0 mt-2">Tong: <%= totalItems %> ban ghi (30 dong/trang).</p>
+        <% } %>
     </div>
 </div>
 <script src="${pageContext.request.contextPath}/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
