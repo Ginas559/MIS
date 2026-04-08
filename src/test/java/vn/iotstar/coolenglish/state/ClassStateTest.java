@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import vn.iotstar.coolenglish.entity.EnglishClass;
+import vn.iotstar.coolenglish.entity.Schedule;
 import vn.iotstar.coolenglish.entity.Student;
 import vn.iotstar.coolenglish.enums.ClassStatus;
 
@@ -60,6 +61,16 @@ class ClassStateTest {
         student.setFullName("Student Three");
 
         assertThrows(IllegalStateException.class, () -> clazz.register(student));
+    }
+
+    @Test
+    void classShouldExposeScheduleSessionsPath() {
+        EnglishClass clazz = new EnglishClass();
+        Schedule schedule = new Schedule();
+        schedule.addSession("MONDAY-08:00");
+        clazz.setSchedule(schedule);
+
+        assertEquals(1, clazz.getSchedule().getSessions().size());
     }
 }
 

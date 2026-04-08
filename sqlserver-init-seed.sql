@@ -124,6 +124,28 @@ BEGIN
 END;
 GO
 
+IF OBJECT_ID(N'dbo.Schedules', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Schedules (
+        id BIGINT IDENTITY(1,1) NOT NULL,
+        class_id NVARCHAR(50) NOT NULL,
+        CONSTRAINT PK_Schedules PRIMARY KEY (id),
+        CONSTRAINT UQ_Schedules_class UNIQUE (class_id),
+        CONSTRAINT FK_Schedules_Classes FOREIGN KEY (class_id) REFERENCES dbo.Classes(classID)
+    );
+END;
+GO
+
+IF OBJECT_ID(N'dbo.ScheduleSessions', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ScheduleSessions (
+        schedule_id BIGINT NOT NULL,
+        session_value NVARCHAR(255) NOT NULL,
+        CONSTRAINT FK_ScheduleSessions_Schedules FOREIGN KEY (schedule_id) REFERENCES dbo.Schedules(id)
+    );
+END;
+GO
+
 IF OBJECT_ID(N'dbo.person', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.person (

@@ -10,6 +10,7 @@ import vn.iotstar.coolenglish.entity.Course;
 import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Enrollment;
 import vn.iotstar.coolenglish.entity.Invoice;
+import vn.iotstar.coolenglish.entity.Schedule;
 import vn.iotstar.coolenglish.entity.Student;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.EnrollmentStatus;
@@ -83,9 +84,7 @@ public class EnrollmentFacade {
             }
             clazz.updateInternalState();
 
-            int currentEnrollment = clazz.getCurrentEnrollment() == null ? 0 : clazz.getCurrentEnrollment();
-            int maxCapacity = clazz.getMaxCapacity() == null ? Integer.MAX_VALUE : clazz.getMaxCapacity();
-            if (currentEnrollment >= maxCapacity) {
+            if (!clazz.checkCapacity()) {
                 throw new IllegalStateException("Lớp học đã đầy. Không thể ghi danh.");
             }
 
@@ -101,6 +100,11 @@ public class EnrollmentFacade {
             }
 
             clazz.register(student);
+
+            Schedule schedule = clazz.getSchedule();
+            if (schedule != null) {
+                schedule.getSessions();
+            }
 
             // ========== BƯỚC 2: TẠO ENROLLMENT ==========
             Enrollment enrollment = new Enrollment();

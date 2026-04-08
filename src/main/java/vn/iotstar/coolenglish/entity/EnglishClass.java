@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -69,6 +71,9 @@ public class EnglishClass implements Serializable {
     @Transient
     private ClassState state;
 
+    @OneToOne(mappedBy = "englishClass", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Schedule schedule;
+
     @OneToMany(mappedBy = "englishClass")
     private List<Enrollment> enrollments = new ArrayList<>();
 
@@ -108,6 +113,21 @@ public class EnglishClass implements Serializable {
     public void increaseEnrollmentCount() {
         int value = currentEnrollment == null ? 0 : currentEnrollment;
         currentEnrollment = value + 1;
+    }
+
+    public Schedule getSchedule() {
+        if (schedule == null) {
+            schedule = new Schedule();
+            schedule.setEnglishClass(this);
+        }
+        return schedule;
+    }
+
+    public void setSchedule(Schedule schedule) {
+        this.schedule = schedule;
+        if (schedule != null && schedule.getEnglishClass() != this) {
+            schedule.setEnglishClass(this);
+        }
     }
 
     public String getClassID() {

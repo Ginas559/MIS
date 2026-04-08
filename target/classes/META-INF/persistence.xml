@@ -10,6 +10,7 @@
         <class>vn.iotstar.coolenglish.entity.Course</class>
         <class>vn.iotstar.coolenglish.entity.Room</class>
         <class>vn.iotstar.coolenglish.entity.EnglishClass</class>
+        <class>vn.iotstar.coolenglish.entity.Schedule</class>
         <class>vn.iotstar.coolenglish.entity.Enrollment</class>
         <class>vn.iotstar.coolenglish.entity.Invoice</class>
         <class>vn.iotstar.coolenglish.entity.ExamResult</class>

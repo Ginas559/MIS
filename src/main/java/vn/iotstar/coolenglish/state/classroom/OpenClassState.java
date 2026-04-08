@@ -2,6 +2,7 @@ package vn.iotstar.coolenglish.state.classroom;
 
 import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Student;
+import vn.iotstar.coolenglish.entity.Schedule;
 import vn.iotstar.coolenglish.enums.ClassStatus;
 
 public class OpenClassState implements ClassState {
@@ -10,6 +11,11 @@ public class OpenClassState implements ClassState {
     public void registerStudent(EnglishClass clazz, Student student) {
         if (student == null) {
             throw new IllegalArgumentException("Student is required for enrollment.");
+        }
+
+        Schedule schedule = clazz.getSchedule();
+        if (schedule != null) {
+            schedule.getSessions().size();
         }
 
         Integer maxCapacity = clazz.getMaxCapacity();

@@ -45,6 +45,7 @@ vn\iotstar\coolenglish\entity\Staff.class
 vn\iotstar\coolenglish\enums\ClassStatus.class
 vn\iotstar\coolenglish\dao\impl\RoomDAO.class
 vn\iotstar\coolenglish\web\PendingSignupData.class
+vn\iotstar\coolenglish\entity\Schedule.class
 vn\iotstar\coolenglish\factory\PartnerIntegrationFactory.class
 vn\iotstar\coolenglish\enums\AttendanceStatus.class
 vn\iotstar\coolenglish\state\classroom\ClassStateFactory.class
@@ -52,6 +53,7 @@ vn\iotstar\coolenglish\web\PaginationSupport.class
 vn\iotstar\coolenglish\factory\StaffRegistration.class
 vn\iotstar\coolenglish\web\LogoutController.class
 vn\iotstar\coolenglish\util\EmailUtils.class
+vn\iotstar\coolenglish\dao\impl\ScheduleDAO.class
 vn\iotstar\coolenglish\state\classroom\OpenClassState.class
 vn\iotstar\coolenglish\dao\impl\ExamResultDAO.class
 vn\iotstar\coolenglish\web\PartnerIntegrationController.class
