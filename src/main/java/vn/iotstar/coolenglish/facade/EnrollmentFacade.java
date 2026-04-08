@@ -10,6 +10,7 @@ import vn.iotstar.coolenglish.entity.Course;
 import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Enrollment;
 import vn.iotstar.coolenglish.entity.Invoice;
+import vn.iotstar.coolenglish.entity.Schedule;
 import vn.iotstar.coolenglish.entity.Student;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.EnrollmentStatus;
@@ -102,6 +103,15 @@ public class EnrollmentFacade {
 
             clazz.register(student);
 
+            // ========== BƯỚC 3: XÁC NHẬN LỊCH TRÌNH TỔNG THỂ ==========
+            Schedule schedule = clazz.getSchedule();
+            if (schedule != null) {
+                int plannedSessionCount = schedule.getSessions() == null ? 0 : schedule.getSessions().size();
+                if (schedule.getTotalSessions() != null && plannedSessionCount > schedule.getTotalSessions()) {
+                    throw new IllegalStateException("Schedule không nhất quán với số buổi học đã khai báo.");
+                }
+            }
+
             // ========== BƯỚC 2: TẠO ENROLLMENT ==========
             Enrollment enrollment = new Enrollment();
             enrollment.setEnglishClass(clazz);
@@ -111,7 +121,7 @@ public class EnrollmentFacade {
             em.persist(enrollment);
             em.flush();
 
-            // ========== BƯỚC 3: TÍNH PHÍ TỪ COURSE ==========
+            // ========== BƯỚC 4: TÍNH PHÍ TỪ COURSE ==========
             Double totalFee = 0.0;
             String courseID = clazz.getCourseID();
             if (courseID != null && !courseID.isBlank()) {
@@ -121,7 +131,7 @@ public class EnrollmentFacade {
                 }
             }
 
-            // ========== BƯỚC 4: TẠO INVOICE ==========
+            // ========== BƯỚC 5: TẠO INVOICE ==========
             Invoice invoice = new Invoice();
             invoice.setInvoiceNumber(generateInvoiceNumber());
             invoice.setEnrollment(enrollment);
@@ -131,7 +141,7 @@ public class EnrollmentFacade {
             invoice.setCreatedAt(LocalDateTime.now());
             em.persist(invoice);
 
-            // ========== BƯỚC 5: COMMIT ĐỒNG THỜI ==========
+            // ========== BƯỚC 6: COMMIT ĐỒNG THỜI ==========
             em.merge(clazz);
             em.getTransaction().commit();
             return new EnrollmentResult(enrollment, invoice);
