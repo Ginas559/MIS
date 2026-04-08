@@ -20,16 +20,31 @@
         <class>vn.iotstar.coolenglish.entity.Staff</class>
 
         <properties>
-            <property name="jakarta.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:sqlserver://localhost:1433;databaseName=coolenglish;encrypt=true;trustServerCertificate=true"/>
-            <property name="jakarta.persistence.jdbc.user" value="sa"/>
-            <property name="jakarta.persistence.jdbc.password" value="123456"/>
+            <!-- Azure SQL -->
+            <property name="jakarta.persistence.jdbc.driver"
+                      value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
 
-            <property name="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect"/>
-            <property name="hibernate.hbm2ddl.auto" value="update"/>
-            <property name="hibernate.show_sql" value="true"/>
-            <property name="hibernate.format_sql" value="true"/>
+            <property name="jakarta.persistence.jdbc.url"
+                      value="jdbc:sqlserver://coolenglish-server-xyz.database.windows.net:1433;database=coolenglish;encrypt=true;trustServerCertificate=false;loginTimeout=30;"/>
+
+            <property name="jakarta.persistence.jdbc.user"
+                      value="sqladmin@coolenglish-server-xyz"/>
+
+            <property name="jakarta.persistence.jdbc.password"
+                      value="YOUR_REAL_PASSWORD"/>
+
+            <!-- Hibernate -->
+            <property name="hibernate.dialect"
+                      value="org.hibernate.dialect.SQLServerDialect"/>
+
+            <property name="hibernate.hbm2ddl.auto"
+                      value="update"/>
+
+            <property name="hibernate.show_sql"
+                      value="true"/>
+
+            <property name="hibernate.format_sql"
+                      value="true"/>
         </properties>
     </persistence-unit>
 </persistence>
-
