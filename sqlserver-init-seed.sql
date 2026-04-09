@@ -115,11 +115,58 @@ BEGIN
         end_date DATE NULL,
         courseID NVARCHAR(50) NULL,
         roomID NVARCHAR(50) NULL,
+        scheduleID NVARCHAR(50) NULL,
         maxCapacity INT NULL,
         currentEnrollment INT NULL,
         status NVARCHAR(20) NOT NULL,
         CONSTRAINT PK_Classes PRIMARY KEY (classID),
         CONSTRAINT CK_Classes_status CHECK (status IN ('PLANNED', 'OPEN', 'RUNNING', 'CLOSED', 'CANCELLED'))
+    );
+END;
+GO
+
+IF OBJECT_ID(N'dbo.Schedules', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Schedules (
+        scheduleID NVARCHAR(50) NOT NULL,
+        totalSessions INT NULL,
+        description NVARCHAR(255) NULL,
+        createDate DATE NULL,
+        CONSTRAINT PK_Schedules PRIMARY KEY (scheduleID)
+    );
+END;
+GO
+
+IF COL_LENGTH(N'dbo.Classes', N'scheduleID') IS NULL
+BEGIN
+    ALTER TABLE dbo.Classes
+    ADD scheduleID NVARCHAR(50) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = N'FK_Classes_Schedules'
+      AND parent_object_id = OBJECT_ID(N'dbo.Classes')
+)
+BEGIN
+    ALTER TABLE dbo.Classes
+    ADD CONSTRAINT FK_Classes_Schedules FOREIGN KEY (scheduleID) REFERENCES dbo.Schedules(scheduleID);
+END;
+GO
+
+IF OBJECT_ID(N'dbo.Sessions', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Sessions (
+        sessionID NVARCHAR(50) NOT NULL,
+        scheduleID NVARCHAR(50) NOT NULL,
+        sessionName NVARCHAR(150) NULL,
+        durationHours FLOAT NULL,
+        sessionDate DATE NULL,
+        status NVARCHAR(20) NOT NULL,
+        CONSTRAINT PK_Sessions PRIMARY KEY (sessionID),
+        CONSTRAINT FK_Sessions_Schedules FOREIGN KEY (scheduleID) REFERENCES dbo.Schedules(scheduleID),
+        CONSTRAINT CK_Sessions_status CHECK (status IN ('SCHEDULED', 'COMPLETED', 'CANCELLED', 'RESCHEDULED'))
     );
 END;
 GO
