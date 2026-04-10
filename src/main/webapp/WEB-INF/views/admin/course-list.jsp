@@ -36,6 +36,7 @@
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/admin/course">Quan ly khoa hoc</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/room">Quan ly phong hoc</a>
                 <a class="btn btn-outline-dark" href="${pageContext.request.contextPath}/admin/class">Quan ly lop hoc</a>
+                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/schedule">Quan ly lich hoc</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
             <% } %>
             <form method="post" action="${pageContext.request.contextPath}/logout">
@@ -62,6 +63,7 @@
             <a class="btn btn-sky btn-sm" href="${pageContext.request.contextPath}/admin/course/add">Them khoa hoc</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/room">Danh sach phong hoc</a>
             <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/admin/class">Danh sach lop hoc</a>
+            <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/schedule">Quan ly lich hoc</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
         </div>
 
