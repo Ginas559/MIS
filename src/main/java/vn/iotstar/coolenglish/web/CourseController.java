@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.iotstar.coolenglish.dao.impl.CourseDAO;
+import vn.iotstar.coolenglish.dao.impl.EnrollmentDAO;
 import vn.iotstar.coolenglish.entity.Course;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
@@ -23,6 +24,7 @@ public class CourseController extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     private final CourseDAO courseDAO = new CourseDAO();
+    private final EnrollmentDAO enrollmentDAO = new EnrollmentDAO();
     private final SecurityAccessFactory securityAccessFactory = SecurityAccessFactory.getInstance();
     private static final String STATUS_ACTIVE = "ACTIVE";
     private static final String STATUS_INACTIVE = "INACTIVE";
@@ -125,6 +127,9 @@ public class CourseController extends HttpServlet {
         req.setAttribute("paginationPath", req.getServletPath());
         req.setAttribute("managementView", managementView);
         req.setAttribute("canManage", canManageCourse(currentUser));
+        if (currentUser != null && currentUser.getRole() == UserRole.STUDENT) {
+            req.setAttribute("enrolledCourseIds", enrollmentDAO.findEnrolledCourseIdsByStudentEmail(currentUser.getEmail()));
+        }
         forward(req, resp, "/WEB-INF/views/admin/course-list.jsp");
     }
 
@@ -243,8 +248,8 @@ public class CourseController extends HttpServlet {
         HttpSession session = req.getSession(false);
         if (session != null) {
             Object currentUser = session.getAttribute("user");
-            if (currentUser instanceof UserAccount) {
-                return (UserAccount) currentUser;
+            if (currentUser instanceof UserAccount user) {
+                return user;
             }
         }
         return null;

@@ -3,12 +3,9 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoolEnglish - Xac thuc OTP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app.css">
 </head>
-<body class="app-body">
+<body>
 <div class="container">
     <div class="app-section app-card">
         <h1 class="h4 app-title text-center mb-3">Xac thuc OTP</h1>
@@ -41,7 +38,6 @@
         </div>
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 

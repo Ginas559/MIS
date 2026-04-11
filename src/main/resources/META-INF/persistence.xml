@@ -14,19 +14,27 @@
         <class>vn.iotstar.coolenglish.entity.Session</class>
         <class>vn.iotstar.coolenglish.entity.Enrollment</class>
         <class>vn.iotstar.coolenglish.entity.Invoice</class>
+        <class>vn.iotstar.coolenglish.entity.Payment</class>
         <class>vn.iotstar.coolenglish.entity.ExamResult</class>
         <class>vn.iotstar.coolenglish.entity.UserAccount</class>
         <class>vn.iotstar.coolenglish.entity.Person</class>
         <class>vn.iotstar.coolenglish.entity.Student</class>
         <class>vn.iotstar.coolenglish.entity.Teacher</class>
         <class>vn.iotstar.coolenglish.entity.Staff</class>
+
         <class>vn.iotstar.coolenglish.entity.AuditLog</class>
+
+        <class>vn.iotstar.coolenglish.entity.AcademicContentEntity</class>
+        <class>vn.iotstar.coolenglish.entity.Lesson</class>
+        <class>vn.iotstar.coolenglish.entity.Module</class>
+        <class>vn.iotstar.coolenglish.entity.Roadmap</class>
+        <class>vn.iotstar.coolenglish.entity.RoadmapAccessGrant</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:sqlserver://localhost:1433;databaseName=coolenglish;encrypt=true;trustServerCertificate=true"/>
             <property name="jakarta.persistence.jdbc.user" value="sa"/>
-            <property name="jakarta.persistence.jdbc.password" value="123456"/>
+            <property name="jakarta.persistence.jdbc.password" value="1"/>
 
             <property name="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect"/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
@@ -35,4 +43,3 @@
         </properties>
     </persistence-unit>
 </persistence>
-

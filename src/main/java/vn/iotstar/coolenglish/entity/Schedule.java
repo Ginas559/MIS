@@ -83,25 +83,15 @@ public class Schedule implements Serializable {
     }
 
     public void setSessions(List<Session> sessions) {
-        this.sessions = sessions == null ? new ArrayList<>() : sessions;
-        for (Session session : this.sessions) {
-            if (session != null) {
-                session.setSchedule(this);
+        this.sessions = sessions != null ? sessions : new ArrayList<>();
+        this.totalSessions = this.sessions.size();
+        if (this.sessions != null) {
+            for (Session s : this.sessions) {
+                s.setSchedule(this);
             }
         }
     }
 
-    public Double calculateTotalHours() {
-        double totalHours = 0.0;
-        if (sessions != null) {
-            for (Session session : sessions) {
-                if (session != null && session.getDurationHours() != null) {
-                    totalHours += session.getDurationHours();
-                }
-            }
-        }
-        return totalHours;
-    }
 }
 
 
