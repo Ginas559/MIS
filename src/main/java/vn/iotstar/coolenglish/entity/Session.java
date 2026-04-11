@@ -5,6 +5,7 @@ import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -14,10 +15,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 import vn.iotstar.coolenglish.enums.SessionStatus;
 
 @Entity
 @Table(name = "Sessions")
+@EntityListeners(AuditEntityListener.class)
 public class Session implements Serializable {
 
     private static final long serialVersionUID = 1L;

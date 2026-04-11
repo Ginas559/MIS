@@ -20,6 +20,7 @@
         <class>vn.iotstar.coolenglish.entity.Student</class>
         <class>vn.iotstar.coolenglish.entity.Teacher</class>
         <class>vn.iotstar.coolenglish.entity.Staff</class>
+        <class>vn.iotstar.coolenglish.entity.AuditLog</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>

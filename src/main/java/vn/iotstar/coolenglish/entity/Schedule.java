@@ -8,6 +8,7 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -15,9 +16,11 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 
 @Entity
 @Table(name = "Schedules")
+@EntityListeners(AuditEntityListener.class)
 public class Schedule implements Serializable {
 
     private static final long serialVersionUID = 1L;
