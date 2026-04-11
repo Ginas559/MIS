@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: vn.iotstar.coolenglish.service.AccessPolicyServiceTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in vn.iotstar.coolenglish.service.AccessPolicyServiceTest
