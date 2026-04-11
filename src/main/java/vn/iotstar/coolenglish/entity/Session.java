@@ -1,10 +1,12 @@
 package vn.iotstar.coolenglish.entity;
 
 import java.io.Serializable;
+import java.time.LocalTime;
 import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -14,10 +16,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 import vn.iotstar.coolenglish.enums.SessionStatus;
 
 @Entity
 @Table(name = "Sessions")
+@EntityListeners(AuditEntityListener.class)
 public class Session implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -33,16 +37,28 @@ public class Session implements Serializable {
     @Column(name = "sessionName", length = 150)
     private String sessionName;
 
-    @Column(name = "durationHours")
-    private Double durationHours;
-
     @Temporal(TemporalType.DATE)
     @Column(name = "sessionDate")
     private Date sessionDate;
+    
+    @Column(name = "startTime")
+    private LocalTime startTime;
+
+    @Column(name = "endTime")
+    private LocalTime endTime;
+
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
     private SessionStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "roomID")
+    private Room room;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id")
+    private Teacher teacher;
 
     public Session() {
         this.status = SessionStatus.SCHEDULED;
@@ -72,20 +88,28 @@ public class Session implements Serializable {
         this.sessionName = sessionName;
     }
 
-    public Double getDurationHours() {
-        return durationHours;
-    }
-
-    public void setDurationHours(Double durationHours) {
-        this.durationHours = durationHours;
-    }
-
     public Date getSessionDate() {
         return sessionDate;
     }
 
     public void setSessionDate(Date sessionDate) {
         this.sessionDate = sessionDate;
+    }
+    
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
     }
 
     public SessionStatus getStatus() {
@@ -95,5 +119,22 @@ public class Session implements Serializable {
     public void setStatus(SessionStatus status) {
         this.status = status;
     }
+    
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        this.teacher = teacher;
+    }
+
 }
 

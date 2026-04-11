@@ -2,13 +2,16 @@ package vn.iotstar.coolenglish.entity;
 
 import java.io.Serializable;
 
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 
 @Entity
 @Table(name = "Courses")
+@EntityListeners(AuditEntityListener.class)
 public class Course implements Serializable {
 
     private static final long serialVersionUID = 1L;

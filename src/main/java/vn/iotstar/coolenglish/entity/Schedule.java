@@ -8,6 +8,7 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -15,9 +16,11 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 
 @Entity
 @Table(name = "Schedules")
+@EntityListeners(AuditEntityListener.class)
 public class Schedule implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -80,25 +83,15 @@ public class Schedule implements Serializable {
     }
 
     public void setSessions(List<Session> sessions) {
-        this.sessions = sessions == null ? new ArrayList<>() : sessions;
-        for (Session session : this.sessions) {
-            if (session != null) {
-                session.setSchedule(this);
+        this.sessions = sessions != null ? sessions : new ArrayList<>();
+        this.totalSessions = this.sessions.size();
+        if (this.sessions != null) {
+            for (Session s : this.sessions) {
+                s.setSchedule(this);
             }
         }
     }
 
-    public Double calculateTotalHours() {
-        double totalHours = 0.0;
-        if (sessions != null) {
-            for (Session session : sessions) {
-                if (session != null && session.getDurationHours() != null) {
-                    totalHours += session.getDurationHours();
-                }
-            }
-        }
-        return totalHours;
-    }
 }
 
 
