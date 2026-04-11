@@ -17,6 +17,7 @@
             <c:choose>
                 <c:when test="${not empty sessionScope.user}">
                     <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/course">Danh sách khóa học</a>
+                    <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/roadmaps">Roadmap tu hoc</a>
                     <form method="post" action="${pageContext.request.contextPath}/logout">
                         <button type="submit" class="btn btn-outline-dark">Đăng xuất</button>
                     </form>
@@ -34,22 +35,22 @@
     <section class="app-section p-4 p-md-5">
         <h1 class="app-title mb-3">Nền tảng quản lý học tiếng Anh</h1>
         <p class="app-subtle mb-4">
-            CoolEnglish giúp quản lý khóa học và phòng học gọn gàng, dễ sử dụng cho đội ngũ vận hành.
-            Sau khi đăng nhập, bạn sẽ vào trang danh sách khóa học.
+            Quan ly khoa hoc va lop hoc tren mot nen tang thong nhat. Roadmap tu hoc duoc dat o trang rieng de hoc vien truy cap de dang.
         </p>
 
         <div class="row g-4">
             <div class="col-md-4">
                 <h2 class="h5 app-title">Khóa học</h2>
-                <p class="app-subtle mb-0">Quản lý thông tin khóa học và học phí theo nhu cầu trung tâm.</p>
+                <p class="app-subtle mb-0">Quan ly thong tin khoa hoc va hoc phi theo nhu cau trung tam.</p>
             </div>
             <div class="col-md-4">
                 <h2 class="h5 app-title">Phòng học</h2>
-                <p class="app-subtle mb-0">Theo dõi sức chứa, vị trí và trạng thái sử dụng của từng phòng.</p>
+                <p class="app-subtle mb-0">Theo doi suc chua, vi tri va trang thai su dung cua tung phong.</p>
             </div>
             <div class="col-md-4">
-                <h2 class="h5 app-title">Phân quyền</h2>
-                <p class="app-subtle mb-0">Người dùng STAFF và ADMIN có khu vực quản lý riêng cho chức năng thay đổi dữ liệu.</p>
+                <h2 class="h5 app-title">Roadmap tự học</h2>
+                <p class="app-subtle mb-3">Trang rieng gom TOEIC RL, TOEIC SW va IELTS theo quyen truy cap.</p>
+                <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/roadmaps">Mo trang roadmap</a>
             </div>
         </div>
     </section>

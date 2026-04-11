@@ -1,5 +1,7 @@
 package vn.iotstar.coolenglish.dao.impl;
 
+import java.util.List;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import vn.iotstar.coolenglish.config.JPAUtil;
@@ -55,6 +57,22 @@ public class UserAccountDAO extends AbstractDAO<UserAccount> {
             
             java.util.List<UserAccount> results = query.getResultList();
             return results.isEmpty() ? null : results.get(0);
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<UserAccount> findLearnersForRoadmapGrant() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            String jpql = "SELECT ua FROM UserAccount ua "
+                    + "WHERE ua.relatedID IS NOT NULL "
+                    + "AND (ua.role = :studentRole OR ua.role = :teacherRole) "
+                    + "ORDER BY ua.role, ua.username";
+            TypedQuery<UserAccount> query = em.createQuery(jpql, UserAccount.class);
+            query.setParameter("studentRole", vn.iotstar.coolenglish.enums.UserRole.STUDENT);
+            query.setParameter("teacherRole", vn.iotstar.coolenglish.enums.UserRole.TEACHER);
+            return query.getResultList();
         } finally {
             em.close();
         }
