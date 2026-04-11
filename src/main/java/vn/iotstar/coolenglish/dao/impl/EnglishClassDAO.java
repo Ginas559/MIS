@@ -19,6 +19,25 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
         return findById(classID, EnglishClass.class);
     }
 
+    /** Lớp + khóa + phòng + lịch (dùng khi hóa đơn chưa gắn enrollment). */
+    public EnglishClass findByClassIdWithInvoiceRelations(String classID) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<EnglishClass> query = em.createQuery(
+                    "SELECT DISTINCT c FROM EnglishClass c "
+                            + "LEFT JOIN FETCH c.course "
+                            + "LEFT JOIN FETCH c.room "
+                            + "LEFT JOIN FETCH c.schedule "
+                            + "WHERE c.classID = :classID",
+                    EnglishClass.class);
+            query.setParameter("classID", classID);
+            java.util.List<EnglishClass> results = query.getResultList();
+            return results.isEmpty() ? null : results.get(0);
+        } finally {
+            em.close();
+        }
+    }
+
     public boolean existsByClassID(String classID) {
         EntityManager em = JPAUtil.getEntityManager();
         try {

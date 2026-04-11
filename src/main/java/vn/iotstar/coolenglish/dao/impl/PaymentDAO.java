@@ -39,6 +39,28 @@ public class PaymentDAO extends AbstractDAO<Payment> {
         }
     }
 
+    /**
+     * Tải Payment kèm hóa đơn, ghi danh, lớp, khóa, phòng, lịch, học viên (phục vụ InvoiceBuilder).
+     */
+    public Payment findByTransactionRefWithInvoiceContext(String transactionRef) {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
+            TypedQuery<Payment> query = em.createQuery(
+                    "SELECT DISTINCT p FROM Payment p "
+                            + "LEFT JOIN FETCH p.invoice i "
+                            + "LEFT JOIN FETCH i.enrollment e "
+                            + "LEFT JOIN FETCH e.englishClass c "
+                            + "LEFT JOIN FETCH c.course "
+                            + "LEFT JOIN FETCH c.room "
+                            + "LEFT JOIN FETCH c.schedule "
+                            + "LEFT JOIN FETCH e.student s "
+                            + "WHERE p.transactionRef = :transactionRef",
+                    Payment.class);
+            query.setParameter("transactionRef", transactionRef);
+            java.util.List<Payment> results = query.getResultList();
+            return results.isEmpty() ? null : results.get(0);
+        }
+    }
+
     public List<Payment> findPendingCashPayments() {
         try (EntityManager em = JPAUtil.getEntityManager()) {
             TypedQuery<Payment> query = em.createQuery(

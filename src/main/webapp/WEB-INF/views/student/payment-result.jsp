@@ -51,9 +51,13 @@
         <% } %>
 
         <% if ("COMPLETED".equals(payment.getStatus().name())) { %>
-            <div class="mt-3">
+            <div class="mt-3 d-flex flex-wrap gap-2">
+                <a class="btn btn-primary"
+                   href="${pageContext.request.contextPath}/student/invoice/detail?txnRef=<%= payment.getTransactionRef() %>">Xem hóa đơn chi tiết</a>
+                <a class="btn btn-danger"
+                   href="${pageContext.request.contextPath}/student/invoice/pdf?txnRef=<%= payment.getTransactionRef() %>">Xuất hóa đơn PDF</a>
                 <a class="btn btn-outline-dark"
-                   href="${pageContext.request.contextPath}/student/payment/refund?txnRef=<%= payment.getTransactionRef() %>">Thu nghiem Refund</a>
+                   href="${pageContext.request.contextPath}/student/payment/refund?txnRef=<%= payment.getTransactionRef() %>">Thử nghiệm Refund</a>
             </div>
         <% } %>
     <% } %>
