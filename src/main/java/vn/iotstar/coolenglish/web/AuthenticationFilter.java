@@ -11,6 +11,7 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.iotstar.coolenglish.audit.context.AuditActorContext;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
 
@@ -53,8 +54,13 @@ public class AuthenticationFilter implements Filter {
             return;
         }
 
-        // Nếu có user, cho phép tiếp tục
-        chain.doFilter(request, response);
+        AuditActorContext.setCurrentUser(user);
+        try {
+            // Nếu có user, cho phép tiếp tục
+            chain.doFilter(request, response);
+        } finally {
+            AuditActorContext.clear();
+        }
     }
 }
 

@@ -7,6 +7,7 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -14,17 +15,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 import vn.iotstar.coolenglish.enums.ClassStatus;
 import vn.iotstar.coolenglish.state.classroom.ClassState;
 import vn.iotstar.coolenglish.state.classroom.ClassStateFactory;
 
 @Entity
 @Table(name = "Classes")
+@EntityListeners(AuditEntityListener.class)
 public class EnglishClass implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -55,6 +59,10 @@ public class EnglishClass implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "roomID", referencedColumnName = "roomID", insertable = false, updatable = false)
     private Room room;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scheduleID", referencedColumnName = "scheduleID")
+    private Schedule schedule;
 
     @Column(name = "maxCapacity")
     private Integer maxStudent;
@@ -174,6 +182,14 @@ public class EnglishClass implements Serializable {
     public void setRoom(Room room) {
         this.room = room;
         this.roomID = room != null ? room.getRoomID() : null;
+    }
+
+    public Schedule getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(Schedule schedule) {
+        this.schedule = schedule;
     }
 
     public Integer getMaxStudent() {

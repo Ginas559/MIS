@@ -4,16 +4,19 @@ import java.io.Serializable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 import vn.iotstar.coolenglish.enums.UserRole;
 
 @Entity
 @Table(name = "user_account")
+@EntityListeners(AuditEntityListener.class)
 public class UserAccount implements Serializable {
 
     private static final long serialVersionUID = 1L;

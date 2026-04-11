@@ -1,10 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Set" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Course" %>
 <%@ page import="vn.iotstar.coolenglish.entity.UserAccount" %>
 <%@ page import="vn.iotstar.coolenglish.enums.UserRole" %>
 <%
     List<Course> courses = (List<Course>) request.getAttribute("courses");
+    Set<String> enrolledCourseIds = (Set<String>) request.getAttribute("enrolledCourseIds");
     UserAccount currentUser = (UserAccount) session.getAttribute("user");
     boolean managementView = Boolean.TRUE.equals(request.getAttribute("managementView"));
     boolean canManage = currentUser != null
@@ -18,6 +20,7 @@
     if (totalPages == null) totalPages = 1;
     if (totalItems == null) totalItems = 0;
     if (paginationPath == null || paginationPath.isBlank()) paginationPath = "/admin/course";
+    int tableColumnCount = (canManage && managementView) ? 8 : 7;
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -36,6 +39,10 @@
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/admin/course">Quan ly khoa hoc</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/room">Quan ly phong hoc</a>
                 <a class="btn btn-outline-dark" href="${pageContext.request.contextPath}/admin/class">Quan ly lop hoc</a>
+                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/schedule">Quan ly lich hoc</a>
+                <a class="btn btn-outline-dark" href="${pageContext.request.contextPath}/admin/payment/cash">Xac nhan tien mat</a>
+                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/roadmap-grants">Cap quyen roadmap</a>
+                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/roadmap-management">Quan ly roadmap</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
             <% } %>
             <form method="post" action="${pageContext.request.contextPath}/logout">
@@ -51,10 +58,16 @@
             <div>
                 <h1 class="h4 app-title mb-1">Danh sach khoa hoc</h1>
                 <p class="app-subtle mb-0">Nguoi dung dang nhap co the xem danh sach khoa hoc.</p>
+                <% if ("already_enrolled".equals(request.getParameter("msg"))) { %>
+                    <p class="text-success mb-0">Ban da ghi danh khoa hoc nay, khong can thanh toan lai.</p>
+                <% } %>
             </div>
+            <div class="inline-actions">
+                <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/roadmaps">Trang roadmap tu hoc</a>
             <% if (canManage && !managementView) { %>
-                <a class="btn btn-sky" href="${pageContext.request.contextPath}/admin/course">Mo trang quan ly</a>
+                <a class="btn btn-sky" href="/MISEnglish/admin/course">Mo trang quan ly</a>
             <% } %>
+            </div>
         </div>
 
         <% if (canManage && managementView) { %>
@@ -62,6 +75,10 @@
             <a class="btn btn-sky btn-sm" href="${pageContext.request.contextPath}/admin/course/add">Them khoa hoc</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/room">Danh sach phong hoc</a>
             <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/admin/class">Danh sach lop hoc</a>
+            <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/schedule">Quan ly lich hoc</a>
+            <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/admin/payment/cash">Xac nhan tien mat</a>
+            <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/roadmap-grants">Cap quyen roadmap</a>
+            <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/roadmap-management">CRUD roadmap</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
         </div>
 
@@ -89,7 +106,7 @@
                         <th>Duration</th>
                         <th>Fee</th>
                         <th>Status</th>
-                        <% if (canManage && managementView) { %><th>Thao tac</th><% } %>
+                        <% if (canManage && managementView) { %><th>Thao tac</th><% } else { %><th>Mua khoa hoc</th><% } %>
                     </tr>
                 </thead>
                 <tbody>
@@ -113,6 +130,16 @@
                                onclick="return confirm('Xoa khoa hoc nay?');">Xoa</a>
                             <% } %>
                         </td>
+                        <% } else { %>
+                        <td>
+                            <% boolean alreadyEnrolled = enrolledCourseIds != null && enrolledCourseIds.contains(course.getCourseID()); %>
+                            <% if (alreadyEnrolled) { %>
+                                <span class="btn btn-success btn-sm disabled">Da ghi danh</span>
+                            <% } else { %>
+                            <a class="btn btn-sky btn-sm"
+                               href="${pageContext.request.contextPath}/student/payment/detail?courseID=<%= course.getCourseID() %>">Mua</a>
+                            <% } %>
+                        </td>
                         <% } %>
                     </tr>
                     <%
@@ -120,7 +147,7 @@
                         } else {
                     %>
                     <tr>
-                        <td colspan="8" class="text-center app-subtle">Chua co du lieu khoa hoc.</td>
+                        <td colspan="<%= tableColumnCount %>" class="text-center app-subtle">Chua co du lieu khoa hoc.</td>
                     </tr>
                     <%
                         }

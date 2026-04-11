@@ -4,11 +4,14 @@ import java.io.Serializable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 
 @Entity
 @Table(name = "Rooms")
+@EntityListeners(AuditEntityListener.class)
 public class Room implements Serializable {
 
     private static final long serialVersionUID = 1L;

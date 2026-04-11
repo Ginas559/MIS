@@ -10,36 +10,40 @@
         <class>vn.iotstar.coolenglish.entity.Course</class>
         <class>vn.iotstar.coolenglish.entity.Room</class>
         <class>vn.iotstar.coolenglish.entity.EnglishClass</class>
+        <class>vn.iotstar.coolenglish.entity.Schedule</class>
+        <class>vn.iotstar.coolenglish.entity.Session</class>
         <class>vn.iotstar.coolenglish.entity.Enrollment</class>
         <class>vn.iotstar.coolenglish.entity.Invoice</class>
+        <class>vn.iotstar.coolenglish.entity.Payment</class>
         <class>vn.iotstar.coolenglish.entity.ExamResult</class>
         <class>vn.iotstar.coolenglish.entity.UserAccount</class>
         <class>vn.iotstar.coolenglish.entity.Person</class>
         <class>vn.iotstar.coolenglish.entity.Student</class>
         <class>vn.iotstar.coolenglish.entity.Teacher</class>
         <class>vn.iotstar.coolenglish.entity.Staff</class>
+        <class>vn.iotstar.coolenglish.entity.AuditLog</class>
+        <class>vn.iotstar.coolenglish.entity.AcademicContentEntity</class>
+        <class>vn.iotstar.coolenglish.entity.Lesson</class>
+        <class>vn.iotstar.coolenglish.entity.Module</class>
+        <class>vn.iotstar.coolenglish.entity.Roadmap</class>
+        <class>vn.iotstar.coolenglish.entity.RoadmapAccessGrant</class>
 
         <properties>
-            <!-- Azure SQL -->
             <property name="jakarta.persistence.jdbc.driver"
                       value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
 
             <property name="jakarta.persistence.jdbc.url"
                       value="jdbc:sqlserver://coolenglish-server-xyz.database.windows.net:1433;database=coolenglish;encrypt=true;trustServerCertificate=false;loginTimeout=30;"/>
 
-            <!-- ⚠️ USER PHẢI CÓ @server -->
             <property name="jakarta.persistence.jdbc.user"
                       value="sqladmin@coolenglish-server-xyz"/>
 
-            <!-- ⚠️ PASSWORD THẬT (bạn đã đặt lúc tạo DB) -->
             <property name="jakarta.persistence.jdbc.password"
                       value="123456Aa@" />
 
-            <!-- Hibernate -->
             <property name="hibernate.dialect"
                       value="org.hibernate.dialect.SQLServerDialect"/>
 
-            <!-- Tự tạo bảng -->
             <property name="hibernate.hbm2ddl.auto"
                       value="update"/>
 
