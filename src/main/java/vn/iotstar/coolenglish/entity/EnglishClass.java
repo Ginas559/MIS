@@ -7,6 +7,7 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -20,12 +21,14 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 import vn.iotstar.coolenglish.enums.ClassStatus;
 import vn.iotstar.coolenglish.state.classroom.ClassState;
 import vn.iotstar.coolenglish.state.classroom.ClassStateFactory;
 
 @Entity
 @Table(name = "Classes")
+@EntityListeners(AuditEntityListener.class)
 public class EnglishClass implements Serializable {
 
     private static final long serialVersionUID = 1L;

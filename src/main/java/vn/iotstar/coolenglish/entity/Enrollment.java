@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -15,10 +16,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 import vn.iotstar.coolenglish.enums.EnrollmentStatus;
 
 @Entity
 @Table(name = "Enrollments")
+@EntityListeners(AuditEntityListener.class)
 public class Enrollment implements Serializable {
 
     private static final long serialVersionUID = 1L;
