@@ -1,6 +1,7 @@
 package vn.iotstar.coolenglish.dao.impl;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import jakarta.persistence.EntityManager;
@@ -49,5 +50,24 @@ public class EnrollmentDAO extends AbstractDAO<Enrollment> {
             return new HashSet<>(query.getResultList());
         }
     }
-}
 
+    public Enrollment findLatestByClassAndStudent(String classID, Long studentPersonId) {
+        if (classID == null || classID.isBlank() || studentPersonId == null) {
+            return null;
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Enrollment> query = em.createQuery(
+                    "SELECT e FROM Enrollment e WHERE e.englishClass.classID = :classID AND e.student.id = :studentId ORDER BY e.enrolledAt DESC",
+                    Enrollment.class);
+            query.setParameter("classID", classID);
+            query.setParameter("studentId", studentPersonId);
+            query.setMaxResults(1);
+            List<Enrollment> enrollments = query.getResultList();
+            return enrollments.isEmpty() ? null : enrollments.get(0);
+        } finally {
+            em.close();
+        }
+    }
+}

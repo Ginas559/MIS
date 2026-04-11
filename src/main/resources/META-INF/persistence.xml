@@ -21,6 +21,11 @@
         <class>vn.iotstar.coolenglish.entity.Student</class>
         <class>vn.iotstar.coolenglish.entity.Teacher</class>
         <class>vn.iotstar.coolenglish.entity.Staff</class>
+        <class>vn.iotstar.coolenglish.entity.AcademicContentEntity</class>
+        <class>vn.iotstar.coolenglish.entity.Lesson</class>
+        <class>vn.iotstar.coolenglish.entity.Module</class>
+        <class>vn.iotstar.coolenglish.entity.Roadmap</class>
+        <class>vn.iotstar.coolenglish.entity.RoadmapAccessGrant</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
