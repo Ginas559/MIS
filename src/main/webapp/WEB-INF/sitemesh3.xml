@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemesh>
+    <mapping path="/index.jsp" decorator="/main.jsp"/>
+    <mapping path="/login" decorator="/main.jsp"/>
+    <mapping path="/login.jsp" decorator="/main.jsp"/>
+    <mapping path="/signup" decorator="/main.jsp"/>
+    <mapping path="/register.jsp" decorator="/main.jsp"/>
+    <mapping path="/verify-otp" decorator="/main.jsp"/>
+    <mapping path="/verify-otp.jsp" decorator="/main.jsp"/>
+</sitemesh>
