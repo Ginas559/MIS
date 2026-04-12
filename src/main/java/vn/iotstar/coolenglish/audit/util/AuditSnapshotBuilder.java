@@ -66,7 +66,7 @@ public final class AuditSnapshotBuilder {
                 try {
                     Object value = field.get(entity);
                     if (isScalarValue(value)) {
-                        state.put(field.getName(), value);
+                        state.put(field.getName(), normalizeValue(value));
                     }
                 } catch (IllegalAccessException ignored) {
                     // Skip fields that cannot be read.
@@ -88,6 +88,19 @@ public final class AuditSnapshotBuilder {
                 || value instanceof TemporalAccessor
                 || value instanceof UUID
                 || value instanceof Character;
+    }
+
+    private static Object normalizeValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Enum<?> enumValue) {
+            return enumValue.name();
+        }
+        if (value instanceof TemporalAccessor || value instanceof UUID || value instanceof Character) {
+            return String.valueOf(value);
+        }
+        return value;
     }
 
     private static String toJson(Map<String, Object> payload) {

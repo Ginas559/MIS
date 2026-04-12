@@ -1,3 +1,4 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <body>
     <div class="container py-5">
         <section class="app-section p-4 p-md-5">

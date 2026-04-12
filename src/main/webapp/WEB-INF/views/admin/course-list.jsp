@@ -44,6 +44,7 @@
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/roadmap-grants">Cap quyen roadmap</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/roadmap-management">Quan ly roadmap</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
+                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/audit-logs">Audit logs</a>
             <% } %>
             <form method="post" action="${pageContext.request.contextPath}/logout">
                 <button type="submit" class="btn btn-outline-dark">Dang xuat</button>
