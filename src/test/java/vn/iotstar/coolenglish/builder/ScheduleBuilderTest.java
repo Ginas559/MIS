@@ -111,6 +111,33 @@ class ScheduleBuilderTest {
     }
 
     @Test
+    @DisplayName("Should reject same-room sessions that are less than 15 minutes apart")
+    void testBuildRejectsSameRoomSessionsTooClose() {
+        ScheduleBuilder.ScheduleConflictChecker noConflictChecker = (session, scheduleID) -> false;
+
+        Session session3 = new Session();
+        session3.setSessionID("SESS-003");
+        session3.setSessionDate(createDate);
+        session3.setStartTime(LocalTime.of(9, 35));
+        session3.setEndTime(LocalTime.of(10, 30));
+        session3.setRoom(room1);
+        session3.setTeacher(teacher1);
+
+        builder
+                .withCreateDate(createDate)
+                .addSession(session1)
+                .addSession(session3)
+                .withConflictChecker(noConflictChecker);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.build()
+        );
+
+        assertTrue(exception.getMessage().contains("15 phút"));
+    }
+
+    @Test
     @DisplayName("Should set sessions using sessions() method")
     void testBuildWithSessionsList() {
         ScheduleBuilder.ScheduleConflictChecker noConflictChecker = (session, scheduleID) -> false;
