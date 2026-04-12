@@ -50,6 +50,7 @@
                     <th>Ten lop</th>
                     <th>CourseID</th>
                     <th>RoomID</th>
+                    <th>Teacher</th>
                     <th>Hoc vien</th>
                     <th>Trang thai</th>
                     <th>Ghi danh hoc vien</th>
@@ -66,6 +67,7 @@
                     <td><%= clazz.getClassName() %></td>
                     <td><%= clazz.getCourseID() == null ? "" : clazz.getCourseID() %></td>
                     <td><%= clazz.getRoomID() == null ? "" : clazz.getRoomID() %></td>
+                    <td><%= clazz.getTeacherID() == null ? "--" : clazz.getTeacherID() %></td>
                     <td><%= clazz.getCurrentEnrollment() == null ? 0 : clazz.getCurrentEnrollment() %> / <%= clazz.getMaxCapacity() == null ? "-" : clazz.getMaxCapacity() %></td>
                     <td><span class="status-pill"><%= clazz.getStatus() %></span></td>
                     <td>
@@ -87,7 +89,7 @@
                     } else {
                 %>
                 <tr>
-                    <td colspan="8" class="text-center app-subtle">Chua co du lieu lop hoc.</td>
+                    <td colspan="9" class="text-center app-subtle">Chua co du lieu lop hoc.</td>
                 </tr>
                 <%
                     }

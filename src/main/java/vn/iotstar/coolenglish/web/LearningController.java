@@ -61,7 +61,6 @@ public class LearningController extends HttpServlet {
         req.setAttribute("rootModule", learningView.getRootModule());
         req.setAttribute("currentContentId",
                 learningView.getCurrentContent() != null ? learningView.getCurrentContent().getId() : null);
-        req.setAttribute("nextContent", learningView.getNextContent());
         req.setAttribute("premiumLocked", learningView.isPremiumLocked());
 
         RequestDispatcher dispatcher = req.getRequestDispatcher("/WEB-INF/views/learning.jsp");

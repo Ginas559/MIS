@@ -1,6 +1,7 @@
 package vn.iotstar.coolenglish.web;
 
 import java.io.IOException;
+import java.io.Serial;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -10,8 +11,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.iotstar.coolenglish.dao.impl.UserAccountDAO;
+import vn.iotstar.coolenglish.entity.Person;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
+import vn.iotstar.coolenglish.facade.RegistrationFacade;
 import vn.iotstar.coolenglish.factory.StaffRegistration;
 import vn.iotstar.coolenglish.factory.StudentRegistration;
 import vn.iotstar.coolenglish.factory.TeacherRegistration;
@@ -20,6 +23,7 @@ import vn.iotstar.coolenglish.factory.UserRegistration;
 @WebServlet("/verify-otp")
 public class VerifyOtpController extends HttpServlet {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     private final UserAccountDAO userAccountDAO = new UserAccountDAO();
 
@@ -51,7 +55,8 @@ public class VerifyOtpController extends HttpServlet {
         String expectedOtp = (String) session.getAttribute(SignupOtpSessionKeys.OTP_CODE);
         Long expiresAt = (Long) session.getAttribute(SignupOtpSessionKeys.OTP_EXPIRES_AT);
 
-        if (expectedOtp == null || expiresAt == null || System.currentTimeMillis() > expiresAt.longValue()) {
+        long expiresAtMillis = expiresAt == null ? -1L : expiresAt.longValue();
+        if (expectedOtp == null || expiresAt == null || System.currentTimeMillis() > expiresAtMillis) {
             clearSignupSession(session);
             resp.sendRedirect(req.getContextPath() + "/signup?msg=otp_expired");
             return;
@@ -79,15 +84,9 @@ public class VerifyOtpController extends HttpServlet {
         }
 
         UserRegistration factory = buildRegistrationFactory(role);
-
-        factory.registerUser(pendingSignup.getName(), pendingSignup.getEmail());
-
-        UserAccount account = new UserAccount(
-                pendingSignup.getEmail(),
-                pendingSignup.getName(),
-                pendingSignup.getPassword(),
-                role);
-        userAccountDAO.insert(account);
+        Person person = createPerson(factory, pendingSignup);
+        UserAccount account = createAccount(pendingSignup, role);
+        RegistrationFacade.getInstance().register(person, account);
 
         clearSignupSession(session);
         resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=register_success");
@@ -127,6 +126,18 @@ public class VerifyOtpController extends HttpServlet {
         session.removeAttribute(SignupOtpSessionKeys.PENDING_SIGNUP);
         session.removeAttribute(SignupOtpSessionKeys.OTP_CODE);
         session.removeAttribute(SignupOtpSessionKeys.OTP_EXPIRES_AT);
+    }
+
+    private Person createPerson(UserRegistration factory, PendingSignupData pendingSignup) {
+        return factory.registerUser(pendingSignup.getName(), pendingSignup.getEmail());
+    }
+
+    private UserAccount createAccount(PendingSignupData pendingSignup, UserRole role) {
+        return new UserAccount(
+                pendingSignup.getEmail(),
+                pendingSignup.getName(),
+                pendingSignup.getPassword(),
+                role);
     }
 }
 

@@ -41,6 +41,7 @@
             <c:choose>
                 <c:when test="${not empty sessionScope.user}">
                     <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/course">Danh sách khóa học</a>
+                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/profile">Hồ sơ cá nhân</a>
                     <form method="post" action="${pageContext.request.contextPath}/logout">
                         <button type="submit" class="btn btn-outline-dark">Đăng xuất</button>
                     </form>
