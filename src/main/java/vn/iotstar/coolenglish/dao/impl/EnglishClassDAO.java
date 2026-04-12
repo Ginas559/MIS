@@ -4,15 +4,34 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import vn.iotstar.coolenglish.config.JPAUtil;
 import vn.iotstar.coolenglish.entity.EnglishClass;
+import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.enums.ClassStatus;
+import vn.iotstar.coolenglish.enums.TeacherStatus;
 
 public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
+
+    private final TeacherDAO teacherDAO = new TeacherDAO();
 
     @Override
     protected void validateEntity(EnglishClass entity) {
         if (entity == null) {
             throw new IllegalArgumentException("Class entity is required.");
         }
+
+        if (entity.getTeacherID() == null) {
+            return;
+        }
+
+        Teacher teacher = teacherDAO.findById(entity.getTeacherID(), Teacher.class);
+        if (teacher == null) {
+            throw new IllegalArgumentException("Teacher not found: " + entity.getTeacherID());
+        }
+
+        if (teacher.getStatus() == TeacherStatus.INACTIVE) {
+            throw new IllegalArgumentException("Cannot assign INACTIVE teacher to class.");
+        }
+
+        entity.assignTeacher(teacher);
     }
 
     public EnglishClass findByClassID(String classID) {
@@ -28,6 +47,7 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
                             + "LEFT JOIN FETCH c.course "
                             + "LEFT JOIN FETCH c.room "
                             + "LEFT JOIN FETCH c.schedule "
+                            + "LEFT JOIN FETCH c.teacher "
                             + "WHERE c.classID = :classID",
                     EnglishClass.class);
             query.setParameter("classID", classID);

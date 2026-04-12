@@ -2,8 +2,11 @@ package vn.iotstar.coolenglish.factory;
 
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
+import vn.iotstar.coolenglish.service.IClassService;
 import vn.iotstar.coolenglish.service.ICourseService;
+import vn.iotstar.coolenglish.service.impl.ClassServiceImpl;
 import vn.iotstar.coolenglish.service.impl.CourseServiceImpl;
+import vn.iotstar.coolenglish.service.proxy.ClassServiceProxy;
 import vn.iotstar.coolenglish.service.proxy.CourseServiceProxy;
 
 public final class SecurityAccessFactory {
@@ -30,6 +33,11 @@ public final class SecurityAccessFactory {
             return realService;
         }
         return new CourseServiceProxy(realService, user);
+    }
+
+    public IClassService getClassService(UserAccount user) {
+        IClassService realService = new ClassServiceImpl();
+        return new ClassServiceProxy(realService, user);
     }
 }
 

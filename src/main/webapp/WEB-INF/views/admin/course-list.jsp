@@ -46,6 +46,7 @@
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/audit-logs">Audit logs</a>
             <% } %>
+            <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/profile">Ho so ca nhan</a>
             <form method="post" action="${pageContext.request.contextPath}/logout">
                 <button type="submit" class="btn btn-outline-dark">Dang xuat</button>
             </form>

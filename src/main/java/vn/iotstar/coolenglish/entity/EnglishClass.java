@@ -80,6 +80,13 @@ public class EnglishClass implements Serializable {
     @OneToMany(mappedBy = "englishClass")
     private List<Enrollment> enrollments = new ArrayList<>();
 
+    @Column(name = "teacher_id")
+    private Long teacherID;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private Teacher teacher;
+
     public EnglishClass() {
         this.status = ClassStatus.OPEN;
         this.currentEnrollment = 0;
@@ -232,5 +239,26 @@ public class EnglishClass implements Serializable {
     public void setEnrollments(List<Enrollment> enrollments) {
         this.enrollments = enrollments;
     }
-}
 
+    public Long getTeacherID() {
+        return teacherID;
+    }
+
+    public void setTeacherID(Long teacherID) {
+        this.teacherID = teacherID;
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        assignTeacher(teacher);
+    }
+
+    // Keep teacher replacement as a simple reference change to avoid affecting class state/enrollment.
+    public void assignTeacher(Teacher newTeacher) {
+        this.teacher = newTeacher;
+        this.teacherID = newTeacher != null ? newTeacher.getId() : null;
+    }
+}
