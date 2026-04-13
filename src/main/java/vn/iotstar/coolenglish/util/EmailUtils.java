@@ -11,9 +11,6 @@ import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 
-/**
- * Email utility for sending OTP verification codes via Gmail SMTP (SSL 465).
- */
 public final class EmailUtils {
 
     private static final String SMTP_HOST = "smtp.gmail.com";
@@ -36,6 +33,15 @@ public final class EmailUtils {
     }
 
     public static void sendVerificationCode(String toEmail, String code) {
+        sendEmail(toEmail, "CoolEnglish - Ma xac nhan dang ky",
+                "Chao ban, ma xac nhan cua ban la: " + code + ". Vui long khong chia se ma nay.");
+    }
+
+    public static void sendNotificationEmail(String toEmail, String subject, String body) {
+        sendEmail(toEmail, subject, body);
+    }
+
+    public static void sendEmail(String toEmail, String subject, String body) {
         if (!isSmtpConfigured()) {
             throw new IllegalStateException(buildMissingSmtpConfigMessage());
         }
@@ -58,12 +64,12 @@ public final class EmailUtils {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(FROM_EMAIL));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("CoolEnglish - Ma xac nhan dang ky");
-            message.setText("Chao ban, ma xac nhan cua ban la: " + code + ". Vui long khong chia se ma nay.");
+            message.setSubject(subject);
+            message.setText(body);
 
             Transport.send(message);
         } catch (MessagingException e) {
-            throw new RuntimeException("Cannot send OTP email via Gmail SMTP: " + e.getMessage(), e);
+            throw new RuntimeException("Cannot send email via Gmail SMTP: " + e.getMessage(), e);
         }
     }
 }

@@ -27,6 +27,7 @@ import vn.iotstar.coolenglish.entity.Person;
 import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
+import vn.iotstar.coolenglish.service.ResultSubject;
 
 @WebServlet(urlPatterns = {
         "/teacher/results",
@@ -260,6 +261,8 @@ public class TeacherResultController extends HttpServlet {
                         template.usesWriting() ? writingScores[i] : null);
                 examResultDAO.update(result);
             }
+
+            ResultSubject.getInstance().notifyObservers(result);
         }
 
         resp.sendRedirect(req.getContextPath() + buildDashboardTarget(actor, classID, examCode, "scores_saved"));
