@@ -2,11 +2,14 @@
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 <%@ page import="org.sitemesh.content.Content" %>
 <%@ page import="org.sitemesh.content.ContentProperty" %>
+<%@ page import="vn.iotstar.coolenglish.entity.UserAccount" %>
+<%@ page import="vn.iotstar.coolenglish.enums.UserRole" %>
 <%
     Content sitemeshContent = (Content) request.getAttribute(Content.class.getName());
     String pageTitle = "";
     String pageHead = "";
     String pageBody = "";
+    UserAccount currentUser = (UserAccount) session.getAttribute("user");
 
     if (sitemeshContent != null) {
         ContentProperty properties = sitemeshContent.getExtractedProperties();
@@ -40,15 +43,18 @@
         <div class="d-flex gap-2">
             <c:choose>
                 <c:when test="${not empty sessionScope.user}">
-                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/course">Danh sách khóa học</a>
-                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/profile">Hồ sơ cá nhân</a>
+                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/course">Danh sach khoa hoc</a>
+                    <% if (currentUser != null && currentUser.getRole() == UserRole.TEACHER) { %>
+                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/teacher/results">Bang diem</a>
+                    <% } %>
+                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/profile">Ho so ca nhan</a>
                     <form method="post" action="${pageContext.request.contextPath}/logout">
-                        <button type="submit" class="btn btn-outline-dark">Đăng xuất</button>
+                        <button type="submit" class="btn btn-outline-dark">Dang xuat</button>
                     </form>
                 </c:when>
                 <c:otherwise>
-                    <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/login">Đăng nhập</a>
-                    <a class="btn btn-sky" href="${pageContext.request.contextPath}/signup">Đăng ký</a>
+                    <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/login">Dang nhap</a>
+                    <a class="btn btn-sky" href="${pageContext.request.contextPath}/signup">Dang ky</a>
                 </c:otherwise>
             </c:choose>
         </div>
