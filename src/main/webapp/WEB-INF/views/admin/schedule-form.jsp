@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
+<%@ page import="vn.iotstar.coolenglish.entity.EnglishClass" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Room" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Teacher" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Schedule" %>
@@ -14,6 +15,11 @@
     
     Schedule schedule = (Schedule) request.getAttribute("schedule");
     boolean isEditMode = schedule != null;
+    List<EnglishClass> assignableClasses = (List<EnglishClass>) request.getAttribute("assignableClasses");
+    String selectedClassID = null;
+    if (isEditMode && schedule.getEnglishClass() != null) {
+        selectedClassID = schedule.getEnglishClass().getClassID();
+    }
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -145,6 +151,22 @@
             <div class="mb-4">
                 <label for="description" class="form-label">Mo ta lich hoc</label>
                 <textarea class="form-control" id="description" name="description" placeholder="vi du: Lich hoc tieng Anh lop A101"><%= isEditMode && schedule.getDescription() != null ? schedule.getDescription() : "" %></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label for="classID" class="form-label">Lop hoc <span class="required">*</span></label>
+                <select class="form-select" id="classID" name="classID" required>
+                    <option value="">-- Chon lop (ma lop) --</option>
+                    <% if (assignableClasses != null) { %>
+                    <% for (EnglishClass ec : assignableClasses) { %>
+                    <option value="<%= ec.getClassID() %>"
+                        <%= selectedClassID != null && selectedClassID.equals(ec.getClassID()) ? "selected" : "" %>>
+                        <%= ec.getClassID() %> — <%= ec.getClassName() != null ? ec.getClassName() : "" %>
+                    </option>
+                    <% } %>
+                    <% } %>
+                </select>
+                <div class="form-text">Moi lich hoc gan voi dung mot lop (quan he 1-1). Lop da co lich khac se khong hien trong danh sach khi tao moi.</div>
             </div>
 
             <!-- Sessions -->

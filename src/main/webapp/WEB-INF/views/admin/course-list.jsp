@@ -40,7 +40,7 @@
 <nav class="navbar app-navbar">
     <div class="container py-2">
         <a class="app-brand" href="${pageContext.request.contextPath}/index.jsp">CoolEnglish</a>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
             <% if (canManage) { %>
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/admin/course">Quan ly khoa hoc</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/room">Quan ly phong hoc</a>
@@ -52,10 +52,17 @@
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/audit-logs">Audit logs</a>
             <% } %>
+            <% if (currentUser != null && currentUser.getRole() == UserRole.TEACHER) { %>
+                <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/teacher/classes">Diem danh</a>
+            <% } %>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/profile">Ho so ca nhan</a>
-            <form method="post" action="${pageContext.request.contextPath}/logout">
-                <button type="submit" class="btn btn-outline-dark">Dang xuat</button>
-            </form>
+            <% if (currentUser != null) { %>
+                <form method="post" action="${pageContext.request.contextPath}/logout" class="m-0">
+                    <button type="submit" class="btn btn-outline-dark">Dang xuat</button>
+                </form>
+            <% } else { %>
+                <a class="btn btn-outline-dark" href="${pageContext.request.contextPath}/login">Dang nhap</a>
+            <% } %>
         </div>
     </div>
 </nav>

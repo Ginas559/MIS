@@ -16,12 +16,9 @@ import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
 
 /**
- * AuthenticationFilter - Bảo vệ các trang admin yêu cầu đăng nhập
- * 
- * Kiểm tra xem user có trong session không trước khi cho phép truy cập
- * những trang quản lý (admin/*)
- * 
- * @author CoolEnglish Team
+ * AuthenticationFilter - Bảo vệ các trang admin/teacher yêu cầu đăng nhập
+ * * Kiểm tra xem user có trong session không trước khi cho phép truy cập
+ * những trang quản lý.
  */
 @WebFilter(urlPatterns = { "/admin/*", "/teacher/*" })
 public class AuthenticationFilter implements Filter {
@@ -33,10 +30,10 @@ public class AuthenticationFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // Lấy session hiện tại
+        // 1. Lấy session hiện tại
         HttpSession session = httpRequest.getSession(false);
 
-        // Kiểm tra xem user có trong session không
+        // 2. Kiểm tra xem user có trong session không
         UserAccount user = null;
         if (session != null) {
             user = (UserAccount) session.getAttribute("user");
@@ -48,28 +45,37 @@ public class AuthenticationFilter implements Filter {
             return;
         }
 
+        // 3. Kiểm tra phân quyền (Authorization)
         String servletPath = httpRequest.getServletPath();
         UserRole role = user.getRole();
-        boolean teacherArea = servletPath != null && servletPath.startsWith("/teacher/");
-        if (!teacherArea) {
-            if (role != UserRole.ADMIN && role != UserRole.STAFF) {
+        
+        boolean isTeacherArea = servletPath != null && servletPath.startsWith("/teacher/");
+        boolean isScheduleAdminArea = servletPath != null && servletPath.startsWith("/admin/schedule");
+
+        if (isTeacherArea) {
+            // Khu vực /teacher/*: Chỉ dành cho TEACHER
+            if (role != UserRole.TEACHER) {
                 httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.jsp?msg=forbidden");
                 return;
             }
         } else {
-            if (role != UserRole.TEACHER) {
+            // Khu vực /admin/*
+            // Ngoại lệ: TEACHER được vào admin/schedule để điểm danh
+            if (role == UserRole.TEACHER && isScheduleAdminArea) {
+                // Cho phép đi tiếp
+            } else if (role != UserRole.ADMIN && role != UserRole.STAFF) {
+                // Các trường hợp khác trong /admin/ không phải ADMIN/STAFF thì chặn
                 httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.jsp?msg=forbidden");
                 return;
             }
         }
 
+        // 4. Thiết lập context audit và thực thi request
         AuditActorContext.setCurrentUser(user);
         try {
-            // Nếu có user, cho phép tiếp tục
             chain.doFilter(request, response);
         } finally {
             AuditActorContext.clear();
         }
     }
 }
-

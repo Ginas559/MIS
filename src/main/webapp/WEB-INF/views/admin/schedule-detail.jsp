@@ -75,6 +75,14 @@
                             <p class="mb-0"><strong><%= schedule.getScheduleID() %></strong></p>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label text-muted">Lop hoc (classID):</label>
+                            <p class="mb-0"><strong><%= schedule.getEnglishClass() != null ? schedule.getEnglishClass().getClassID() : "---" %></strong>
+                            <% if (schedule.getEnglishClass() != null && schedule.getEnglishClass().getClassName() != null) { %>
+                            <span class="text-muted"> — <%= schedule.getEnglishClass().getClassName() %></span>
+                            <% } %>
+                            </p>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label text-muted">Ngay tao:</label>
                             <p class="mb-0"><%= schedule.getCreateDate() %></p>
                         </div>

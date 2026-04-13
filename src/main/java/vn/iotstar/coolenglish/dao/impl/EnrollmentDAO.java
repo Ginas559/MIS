@@ -51,6 +51,22 @@ public class EnrollmentDAO extends AbstractDAO<Enrollment> {
         }
     }
 
+    public List<Enrollment> findByClassIdWithStudent(String classID) {
+        if (classID == null || classID.isBlank()) {
+            return List.of();
+        }
+        try (EntityManager em = JPAUtil.getEntityManager()) {
+            TypedQuery<Enrollment> query = em.createQuery(
+                    "SELECT DISTINCT e FROM Enrollment e "
+                            + "JOIN FETCH e.student "
+                            + "WHERE e.englishClass.classID = :classID "
+                            + "ORDER BY e.id",
+                    Enrollment.class);
+            query.setParameter("classID", classID);
+            return query.getResultList();
+        }
+    }
+
     public Enrollment findLatestByClassAndStudent(String classID, Long studentPersonId) {
         if (classID == null || classID.isBlank() || studentPersonId == null) {
             return null;

@@ -1,7 +1,9 @@
 package vn.iotstar.coolenglish.dao.impl;
 
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -42,15 +44,30 @@ public class ScheduleDAO extends AbstractDAO<Schedule> {
         }
     }
 
+    public List<Schedule> findAllWithEnglishClass() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Schedule> query = em.createQuery(
+                    "SELECT DISTINCT s FROM Schedule s LEFT JOIN FETCH s.englishClass",
+                    Schedule.class);
+            return query.getResultList().stream()
+                    .sorted(Comparator.comparing(Schedule::getScheduleID, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .collect(Collectors.toList());
+        } finally {
+            em.close();
+        }
+    }
+
     public Schedule findWithSessionsByScheduleID(String scheduleID) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<Schedule> query = em.createQuery(
-            		"SELECT DISTINCT s FROM Schedule s " +
-                            "LEFT JOIN FETCH s.sessions se " +
-                            "LEFT JOIN FETCH se.room " +
-                            "LEFT JOIN FETCH se.teacher " +
-                            "WHERE s.scheduleID = :scheduleID",
+                    "SELECT DISTINCT s FROM Schedule s "
+                            + "LEFT JOIN FETCH s.englishClass "
+                            + "LEFT JOIN FETCH s.sessions se "
+                            + "LEFT JOIN FETCH se.room "
+                            + "LEFT JOIN FETCH se.teacher "
+                            + "WHERE s.scheduleID = :scheduleID",
                     Schedule.class);
             query.setParameter("scheduleID", scheduleID);
             List<Schedule> results = query.getResultList();

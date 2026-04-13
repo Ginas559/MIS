@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Schedule;
 import vn.iotstar.coolenglish.entity.Session;
 
@@ -17,6 +18,8 @@ public class ScheduleBuilder {
     private final List<Session> sessions = new ArrayList<>();
 
     private ScheduleConflictChecker conflictChecker;
+
+    private EnglishClass englishClass;
 
     public ScheduleBuilder withScheduleID(String scheduleID) {
         this.scheduleID = scheduleID;
@@ -53,6 +56,11 @@ public class ScheduleBuilder {
         return this;
     }
 
+    public ScheduleBuilder withEnglishClass(EnglishClass englishClass) {
+        this.englishClass = englishClass;
+        return this;
+    }
+
     public Schedule build() {
         if (createDate == null) {
             throw new IllegalArgumentException("Ngày tạo là bắt buộc");
@@ -75,6 +83,14 @@ public class ScheduleBuilder {
 
         String id = this.scheduleID != null ? this.scheduleID : "SCH-" + System.currentTimeMillis();
 
+        if (englishClass != null) {
+            Schedule existing = englishClass.getSchedule();
+            if (existing != null && !existing.getScheduleID().equals(id)) {
+                throw new IllegalStateException(
+                        "Lớp " + englishClass.getClassID() + " đã gắn lịch khác (" + existing.getScheduleID() + ").");
+            }
+        }
+
         // Conflict checker must be supplied by caller (keeps Builder free of DB internals)
         if (conflictChecker == null) {
             throw new IllegalStateException("Cần cung cấp bộ kiểm tra xung đột lịch");
@@ -91,6 +107,7 @@ public class ScheduleBuilder {
         schedule.setScheduleID(id);
         schedule.setCreateDate(createDate);
         schedule.setDescription(description);
+        schedule.setEnglishClass(englishClass);
         // attach sessions
         for (Session s : sessions) {
             s.setSchedule(schedule);

@@ -85,6 +85,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Ma lich</th>
+                        <th>Lop hoc</th>
                         <th>Mo ta</th>
                         <th>So buoi</th>
                         <th>Ngay tao</th>
@@ -95,6 +96,7 @@
                     <% for (Schedule sch : schedules) { %>
                     <tr>
                         <td><strong><%= sch.getScheduleID() %></strong></td>
+                        <td><%= sch.getEnglishClass() != null ? sch.getEnglishClass().getClassID() : "---" %></td>
                         <td><%= sch.getDescription() != null ? sch.getDescription() : "---" %></td>
                         <td><span class="badge bg-info"><%= sch.getTotalSessions() != null ? sch.getTotalSessions() : 0 %> buoi</span></td>
                         <td><%= sch.getCreateDate() %></td>

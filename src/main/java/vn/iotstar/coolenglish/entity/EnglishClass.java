@@ -60,8 +60,7 @@ public class EnglishClass implements Serializable {
     @JoinColumn(name = "roomID", referencedColumnName = "roomID", insertable = false, updatable = false)
     private Room room;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scheduleID", referencedColumnName = "scheduleID")
+    @OneToOne(mappedBy = "englishClass", fetch = FetchType.LAZY)
     private Schedule schedule;
 
     @Column(name = "maxCapacity")
@@ -195,8 +194,19 @@ public class EnglishClass implements Serializable {
         return schedule;
     }
 
-    public void setSchedule(Schedule schedule) {
-        this.schedule = schedule;
+    public void setSchedule(Schedule newSchedule) {
+        if (newSchedule == null) {
+            if (this.schedule != null) {
+                this.schedule.setEnglishClass(null);
+            }
+            this.schedule = null;
+            return;
+        }
+        if (this.schedule != null && this.schedule != newSchedule) {
+            this.schedule.setEnglishClass(null);
+        }
+        newSchedule.setEnglishClass(this);
+        this.schedule = newSchedule;
     }
 
     public Integer getMaxStudent() {
