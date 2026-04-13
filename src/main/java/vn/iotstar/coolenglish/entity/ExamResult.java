@@ -10,6 +10,8 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 
@@ -33,7 +35,19 @@ public class ExamResult implements Serializable {
     @Column(name = "examCode", length = 50, nullable = false)
     private String examCode;
 
-    @Column(name = "score", nullable = false)
+    @Column(name = "classID", length = 50)
+    private String classID;
+
+    @Column(name = "teacher_id")
+    private Long teacherID;
+
+    @Column(name = "testType", length = 100)
+    private String testType;
+
+    @Column(name = "grade", length = 30)
+    private String grade;
+
+    @Column(name = "score")
     private Double score;
 
     @Column(name = "takenAt", nullable = false)
@@ -53,6 +67,36 @@ public class ExamResult implements Serializable {
         this.score = score;
         this.takenAt = takenAt;
         this.syncedAt = syncedAt;
+        this.grade = calculateGrade();
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void preparePersist() {
+        if (partnerCode == null || partnerCode.isBlank()) {
+            partnerCode = "INTERNAL";
+        }
+        if (takenAt == null) {
+            takenAt = LocalDate.now();
+        }
+        syncedAt = LocalDateTime.now();
+        grade = calculateGrade();
+    }
+
+    public String calculateGrade() {
+        if (score == null || score < 0d) {
+            return null;
+        }
+        if (score >= 8.0d) {
+            return "Gioi";
+        }
+        if (score >= 6.5d) {
+            return "Kha";
+        }
+        if (score >= 5.0d) {
+            return "Trung binh";
+        }
+        return "Yeu";
     }
 
     public Long getId() {
@@ -87,12 +131,49 @@ public class ExamResult implements Serializable {
         this.examCode = examCode;
     }
 
+    public String getClassID() {
+        return classID;
+    }
+
+    public void setClassID(String classID) {
+        this.classID = classID;
+    }
+
+    public Long getTeacherID() {
+        return teacherID;
+    }
+
+    public void setTeacherID(Long teacherID) {
+        this.teacherID = teacherID;
+    }
+
+    public String getTestType() {
+        return testType;
+    }
+
+    public void setTestType(String testType) {
+        this.testType = testType;
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
+    }
+
     public Double getScore() {
         return score;
     }
 
     public void setScore(Double score) {
         this.score = score;
+        this.grade = calculateGrade();
+    }
+
+    public boolean hasRecordedScore() {
+        return score != null && score >= 0d;
     }
 
     public LocalDate getTakenAt() {

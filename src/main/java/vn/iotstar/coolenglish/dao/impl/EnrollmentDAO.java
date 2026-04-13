@@ -70,4 +70,20 @@ public class EnrollmentDAO extends AbstractDAO<Enrollment> {
             em.close();
         }
     }
+
+    public List<Enrollment> findByClassID(String classID) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Enrollment> query = em.createQuery(
+                    "SELECT e FROM Enrollment e "
+                            + "JOIN FETCH e.student s "
+                            + "WHERE e.englishClass.classID = :classID "
+                            + "ORDER BY s.fullName",
+                    Enrollment.class);
+            query.setParameter("classID", classID);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }

@@ -23,7 +23,7 @@ import vn.iotstar.coolenglish.enums.UserRole;
  * 
  * @author CoolEnglish Team
  */
-@WebFilter(urlPatterns = { "/admin/*" })
+@WebFilter(urlPatterns = { "/admin/*", "/teacher/*" })
 public class AuthenticationFilter implements Filter {
 
     @Override
@@ -48,10 +48,19 @@ public class AuthenticationFilter implements Filter {
             return;
         }
 
+        String servletPath = httpRequest.getServletPath();
         UserRole role = user.getRole();
-        if (role != UserRole.ADMIN && role != UserRole.STAFF) {
-            httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.jsp?msg=forbidden");
-            return;
+        boolean teacherArea = servletPath != null && servletPath.startsWith("/teacher/");
+        if (!teacherArea) {
+            if (role != UserRole.ADMIN && role != UserRole.STAFF) {
+                httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.jsp?msg=forbidden");
+                return;
+            }
+        } else {
+            if (role != UserRole.TEACHER) {
+                httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.jsp?msg=forbidden");
+                return;
+            }
         }
 
         AuditActorContext.setCurrentUser(user);
