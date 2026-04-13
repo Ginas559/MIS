@@ -31,11 +31,19 @@ import vn.iotstar.coolenglish.enums.UserRole;
 @WebServlet(urlPatterns = {
         "/teacher/results",
         "/teacher/results/create-test",
-        "/teacher/results/save-scores"
+        "/teacher/results/save-scores",
+        "/staff/results",
+        "/staff/results/create-test",
+        "/staff/results/save-scores"
 })
 public class TeacherResultController extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
+    private static final String FORMAT_TOEIC = "TOEIC";
+    private static final String FORMAT_IELTS = "IELTS";
+    private static final String TEST_TOEIC_2_SKILLS = "TOEIC 2 ky nang";
+    private static final String TEST_TOEIC_4_SKILLS = "TOEIC 4 ky nang";
+    private static final String TEST_IELTS = "IELTS";
 
     private final EnglishClassDAO englishClassDAO = new EnglishClassDAO();
     private final EnrollmentDAO enrollmentDAO = new EnrollmentDAO();
@@ -44,52 +52,57 @@ public class TeacherResultController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        UserAccount teacherAccount = resolveTeacher(req, resp);
-        if (teacherAccount == null) {
+        UserAccount actor = resolveActor(req, resp);
+        if (actor == null) {
             return;
         }
-        showDashboard(req, resp, teacherAccount);
+        showDashboard(req, resp, actor);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
 
-        UserAccount teacherAccount = resolveTeacher(req, resp);
-        if (teacherAccount == null) {
+        UserAccount actor = resolveActor(req, resp);
+        if (actor == null) {
             return;
         }
 
         String servletPath = req.getServletPath();
         if (servletPath.endsWith("/create-test")) {
             try {
-                createTest(req, resp, teacherAccount);
+                createTest(req, resp, actor);
             } catch (IllegalArgumentException e) {
-                redirectWithError(req, resp, trim(req.getParameter("classID")), null, e.getMessage());
+                redirectWithError(req, resp, actor, trim(req.getParameter("classID")), null, e.getMessage());
             }
             return;
         }
         if (servletPath.endsWith("/save-scores")) {
             try {
-                saveScores(req, resp, teacherAccount);
+                saveScores(req, resp, actor);
             } catch (IllegalArgumentException e) {
-                redirectWithError(req, resp, trim(req.getParameter("classID")), trim(req.getParameter("examCode")),
+                redirectWithError(req, resp, actor, trim(req.getParameter("classID")), trim(req.getParameter("examCode")),
                         e.getMessage());
             }
             return;
         }
-        showDashboard(req, resp, teacherAccount);
+        showDashboard(req, resp, actor);
     }
 
-    private void showDashboard(HttpServletRequest req, HttpServletResponse resp, UserAccount teacherAccount)
+    private void showDashboard(HttpServletRequest req, HttpServletResponse resp, UserAccount actor)
             throws ServletException, IOException {
-        Long teacherPersonId = resolveTeacherPersonId(teacherAccount);
-        List<EnglishClass> teachingClasses = teacherPersonId == null
-                ? List.of()
-                : englishClassDAO.findByTeacherID(teacherPersonId);
-        req.setAttribute("classes", teachingClasses);
+        boolean teacherView = actor.getRole() == UserRole.TEACHER;
+        List<EnglishClass> classes = teacherView
+                ? findTeacherClasses(actor)
+                : englishClassDAO.findAll(EnglishClass.class);
+
+        req.setAttribute("classes", classes);
         req.setAttribute("message", resolveMessage(req.getParameter("msg")));
         req.setAttribute("error", req.getParameter("error"));
+        req.setAttribute("isTeacherView", teacherView);
+        req.setAttribute("isStaffView", !teacherView);
+        req.setAttribute("dashboardPath", resolveDashboardPath(actor));
+
         String mode = trim(req.getParameter("mode"));
         if (mode == null || (!"input".equals(mode) && !"view".equals(mode))) {
             mode = "input";
@@ -97,9 +110,9 @@ public class TeacherResultController extends HttpServlet {
         req.setAttribute("mode", mode);
 
         String selectedClassID = trim(req.getParameter("classID"));
-        EnglishClass selectedClass = findSelectedClass(teachingClasses, selectedClassID);
-        if (selectedClass == null && !teachingClasses.isEmpty()) {
-            selectedClass = teachingClasses.get(0);
+        EnglishClass selectedClass = findSelectedClass(classes, selectedClassID);
+        if (selectedClass == null && !classes.isEmpty()) {
+            selectedClass = classes.get(0);
             selectedClassID = selectedClass.getClassID();
         }
 
@@ -108,53 +121,52 @@ public class TeacherResultController extends HttpServlet {
 
         List<Enrollment> enrollments = selectedClassID == null ? List.of() : enrollmentDAO.findByClassID(selectedClassID);
         List<ExamResult> classResults = selectedClassID == null ? List.of() : examResultDAO.findByClassID(selectedClassID);
+        List<ExamResult> testSummaries = buildTestSummaries(classResults);
         req.setAttribute("enrollments", enrollments);
         req.setAttribute("classResults", classResults);
-        req.setAttribute("testSummaries", buildTestSummaries(classResults));
+        req.setAttribute("testSummaries", testSummaries);
 
         String selectedExamCode = trim(req.getParameter("examCode"));
-        if (selectedExamCode == null && !classResults.isEmpty()) {
-            selectedExamCode = classResults.get(0).getExamCode();
+        if (selectedExamCode == null && !testSummaries.isEmpty()) {
+            selectedExamCode = testSummaries.get(0).getExamCode();
         }
 
+        List<ExamResult> selectedExamResults = selectedClassID == null || selectedExamCode == null
+                ? List.of()
+                : examResultDAO.findByClassIDAndExamCode(selectedClassID, selectedExamCode);
         req.setAttribute("selectedExamCode", selectedExamCode);
-        req.setAttribute("selectedExamResults",
-                selectedClassID == null || selectedExamCode == null
-                        ? List.of()
-                        : examResultDAO.findByClassIDAndExamCode(selectedClassID, selectedExamCode));
+        req.setAttribute("selectedExamResults", selectedExamResults);
+        req.setAttribute("selectedTestSummary", selectedExamResults.isEmpty() ? null : selectedExamResults.get(0));
 
         RequestDispatcher dispatcher = req.getRequestDispatcher("/WEB-INF/views/teacher/result-dashboard.jsp");
         dispatcher.forward(req, resp);
     }
 
-    private void createTest(HttpServletRequest req, HttpServletResponse resp, UserAccount teacherAccount)
+    private void createTest(HttpServletRequest req, HttpServletResponse resp, UserAccount actor)
             throws IOException {
         String classID = trim(req.getParameter("classID"));
-        ensureTeacherOwnsClass(teacherAccount, classID, resp, req);
+        ensureActorCanManageClass(actor, classID, resp, req);
         if (resp.isCommitted()) {
             return;
         }
 
         List<Enrollment> enrollments = enrollmentDAO.findByClassID(classID);
         if (enrollments.isEmpty()) {
-            redirectWithError(req, resp, classID, null, "Lop hoc chua co hoc sinh dang ghi danh");
+            redirectWithError(req, resp, actor, classID, null, "Lop hoc chua co hoc sinh dang ghi danh");
             return;
         }
 
-        String testType = trim(req.getParameter("testType"));
-        if (testType == null) {
-            redirectWithError(req, resp, classID, null, "Loai bai test khong duoc de trong");
-            return;
-        }
-
+        String testType = resolveSubmittedTestType(req, actor);
+        String examFormat = resolveExamFormat(req, actor, testType);
+        SkillSelection skillSelection = resolveSkillSelection(req, actor, testType);
         LocalDate takenAt = parseDate(req.getParameter("takenAt"));
         if (takenAt == null) {
             takenAt = LocalDate.now();
         }
 
-        String examCode = buildExamCode(classID, testType, takenAt);
+        String examCode = buildExamCode(classID, testType, examFormat, takenAt);
         if (examResultDAO.existsByClassIDAndExamCode(classID, examCode)) {
-            redirectWithError(req, resp, classID, examCode, "Bai test nay da ton tai trong lop");
+            redirectWithError(req, resp, actor, classID, examCode, "Bai test nay da ton tai trong lop");
             return;
         }
 
@@ -163,99 +175,156 @@ public class TeacherResultController extends HttpServlet {
             ExamResult result = new ExamResult();
             result.setPartnerCode("INTERNAL");
             result.setClassID(classID);
-            result.setTeacherID(resolveTeacherPersonId(teacherAccount));
+            result.setTeacherID(resolveTeacherPersonId(actor));
             result.setStudentEmail(enrollment.getStudent().getEmail());
             result.setExamCode(examCode);
             result.setTestType(testType);
+            result.setExamFormat(examFormat);
+            result.setHasListening(skillSelection.listening());
+            result.setHasReading(skillSelection.reading());
+            result.setHasSpeaking(skillSelection.speaking());
+            result.setHasWriting(skillSelection.writing());
             result.setTakenAt(takenAt);
-            result.setScore(-1d);
             results.add(result);
         }
 
         examResultDAO.insertBatch(results);
-        resp.sendRedirect(req.getContextPath() + "/teacher/results?mode=input&classID=" + classID + "&examCode="
-                + examCode + "&msg=test_created");
+        resp.sendRedirect(req.getContextPath() + buildDashboardTarget(actor, classID, examCode, "test_created"));
     }
 
-    private void saveScores(HttpServletRequest req, HttpServletResponse resp, UserAccount teacherAccount)
+    private void saveScores(HttpServletRequest req, HttpServletResponse resp, UserAccount actor)
             throws IOException {
         String classID = trim(req.getParameter("classID"));
         String examCode = trim(req.getParameter("examCode"));
-        ensureTeacherOwnsClass(teacherAccount, classID, resp, req);
+        ensureActorCanManageClass(actor, classID, resp, req);
         if (resp.isCommitted()) {
             return;
         }
 
         if (examCode == null) {
-            redirectWithError(req, resp, classID, null, "Chon bai test truoc khi luu diem");
+            redirectWithError(req, resp, actor, classID, null, "Chon bai test truoc khi luu diem");
             return;
         }
 
         String[] studentEmails = req.getParameterValues("studentEmail");
-        String[] scores = req.getParameterValues("score");
-        if (studentEmails == null || scores == null || studentEmails.length != scores.length) {
-            redirectWithError(req, resp, classID, examCode, "Du lieu diem khong hop le");
+        if (studentEmails == null || studentEmails.length == 0) {
+            redirectWithError(req, resp, actor, classID, examCode, "Khong tim thay danh sach hoc vien");
             return;
         }
 
         List<ExamResult> existingResults = examResultDAO.findByClassIDAndExamCode(classID, examCode);
-        String testType = existingResults.isEmpty() ? "Teacher Test" : existingResults.get(0).getTestType();
-        LocalDate takenAt = existingResults.isEmpty() || existingResults.get(0).getTakenAt() == null
-                ? LocalDate.now()
-                : existingResults.get(0).getTakenAt();
+        if (existingResults.isEmpty()) {
+            redirectWithError(req, resp, actor, classID, examCode, "Khong tim thay bai test can nhap diem");
+            return;
+        }
+
+        ExamResult template = existingResults.get(0);
+        String[] listeningScores = req.getParameterValues("listeningScore");
+        String[] readingScores = req.getParameterValues("readingScore");
+        String[] speakingScores = req.getParameterValues("speakingScore");
+        String[] writingScores = req.getParameterValues("writingScore");
+
+        validateArrayLength(template.usesListening(), studentEmails, listeningScores, "Listening");
+        validateArrayLength(template.usesReading(), studentEmails, readingScores, "Reading");
+        validateArrayLength(template.usesSpeaking(), studentEmails, speakingScores, "Speaking");
+        validateArrayLength(template.usesWriting(), studentEmails, writingScores, "Writing");
 
         for (int i = 0; i < studentEmails.length; i++) {
             String studentEmail = trim(studentEmails[i]);
-            Double score = parseScore(scores[i]);
             ExamResult result = examResultDAO.findByClassIDAndStudentEmailAndExamCode(classID, studentEmail, examCode);
             if (result == null) {
                 result = new ExamResult();
                 result.setPartnerCode("INTERNAL");
                 result.setClassID(classID);
-                result.setTeacherID(resolveTeacherPersonId(teacherAccount));
+                result.setTeacherID(resolveTeacherPersonId(actor));
                 result.setStudentEmail(studentEmail);
                 result.setExamCode(examCode);
-                result.setTestType(testType);
-                result.setTakenAt(takenAt);
-                result.setScore(score);
+                result.setTestType(template.getTestType());
+                result.setExamFormat(template.getExamFormat());
+                result.setHasListening(template.getHasListening());
+                result.setHasReading(template.getHasReading());
+                result.setHasSpeaking(template.getHasSpeaking());
+                result.setHasWriting(template.getHasWriting());
+                result.setTakenAt(template.getTakenAt());
+                applySkillScores(result, template.getExamFormat(), template,
+                        template.usesListening() ? listeningScores[i] : null,
+                        template.usesReading() ? readingScores[i] : null,
+                        template.usesSpeaking() ? speakingScores[i] : null,
+                        template.usesWriting() ? writingScores[i] : null);
                 examResultDAO.insert(result);
             } else {
-                result.setScore(score);
+                applySkillScores(result, template.getExamFormat(), template,
+                        template.usesListening() ? listeningScores[i] : null,
+                        template.usesReading() ? readingScores[i] : null,
+                        template.usesSpeaking() ? speakingScores[i] : null,
+                        template.usesWriting() ? writingScores[i] : null);
                 examResultDAO.update(result);
             }
         }
 
-        resp.sendRedirect(req.getContextPath() + "/teacher/results?mode=input&classID=" + classID + "&examCode="
-                + examCode + "&msg=scores_saved");
+        resp.sendRedirect(req.getContextPath() + buildDashboardTarget(actor, classID, examCode, "scores_saved"));
     }
 
-    private void ensureTeacherOwnsClass(UserAccount teacherAccount, String classID, HttpServletResponse resp,
+    private void applySkillScores(ExamResult result, String examFormat, ExamResult template,
+            String listeningValue, String readingValue, String speakingValue, String writingValue) {
+        result.setExamFormat(examFormat);
+        result.setHasListening(template.getHasListening());
+        result.setHasReading(template.getHasReading());
+        result.setHasSpeaking(template.getHasSpeaking());
+        result.setHasWriting(template.getHasWriting());
+        if (FORMAT_IELTS.equalsIgnoreCase(examFormat)) {
+            result.setListeningRaw(null);
+            result.setReadingRaw(null);
+            result.setSpeakingRaw(null);
+            result.setWritingRaw(null);
+            result.setListeningScore(template.usesListening() ? parseIeltsBand(listeningValue, "Listening") : null);
+            result.setReadingScore(template.usesReading() ? parseIeltsBand(readingValue, "Reading") : null);
+            result.setSpeakingScore(template.usesSpeaking() ? parseIeltsBand(speakingValue, "Speaking") : null);
+            result.setWritingScore(template.usesWriting() ? parseIeltsBand(writingValue, "Writing") : null);
+            return;
+        }
+
+        result.setListeningScore(null);
+        result.setReadingScore(null);
+        result.setSpeakingScore(null);
+        result.setWritingScore(null);
+        result.setListeningRaw(template.usesListening() ? parseToeicRaw(listeningValue, "Listening") : null);
+        result.setReadingRaw(template.usesReading() ? parseToeicRaw(readingValue, "Reading") : null);
+        result.setSpeakingRaw(template.usesSpeaking() ? parseToeicRaw(speakingValue, "Speaking") : null);
+        result.setWritingRaw(template.usesWriting() ? parseToeicRaw(writingValue, "Writing") : null);
+    }
+
+    private void ensureActorCanManageClass(UserAccount actor, String classID, HttpServletResponse resp,
             HttpServletRequest req) throws IOException {
         if (classID == null) {
-            redirectWithError(req, resp, null, null, "Chua chon lop hoc");
+            redirectWithError(req, resp, actor, null, null, "Chua chon lop hoc");
+            return;
+        }
+
+        if (actor.getRole() != UserRole.TEACHER) {
             return;
         }
 
         EnglishClass englishClass = englishClassDAO.findByClassID(classID);
-        Long teacherPersonId = resolveTeacherPersonId(teacherAccount);
+        Long teacherPersonId = resolveTeacherPersonId(actor);
         if (englishClass == null || teacherPersonId == null || !teacherPersonId.equals(englishClass.getTeacherID())) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Ban khong co quyen quan ly lop hoc nay");
         }
     }
 
-    private Long resolveTeacherPersonId(UserAccount teacherAccount) {
-        if (teacherAccount.getRelatedID() != null) {
-            return teacherAccount.getRelatedID();
+    private Long resolveTeacherPersonId(UserAccount actor) {
+        if (actor.getRelatedID() != null) {
+            return actor.getRelatedID();
         }
 
-        Person person = personDAO.findByEmail(teacherAccount.getEmail());
+        Person person = personDAO.findByEmail(actor.getEmail());
         if (person instanceof Teacher teacher) {
             return teacher.getId();
         }
         return null;
     }
 
-    private UserAccount resolveTeacher(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private UserAccount resolveActor(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
         if (session == null) {
             resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=require_login");
@@ -263,11 +332,24 @@ public class TeacherResultController extends HttpServlet {
         }
 
         Object currentUser = session.getAttribute("user");
-        if (!(currentUser instanceof UserAccount user) || user.getRole() != UserRole.TEACHER) {
+        if (!(currentUser instanceof UserAccount user)) {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=forbidden");
+            return null;
+        }
+
+        if (user.getRole() != UserRole.TEACHER && user.getRole() != UserRole.STAFF && user.getRole() != UserRole.ADMIN) {
             resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=forbidden");
             return null;
         }
         return user;
+    }
+
+    private List<EnglishClass> findTeacherClasses(UserAccount actor) {
+        Long teacherPersonId = resolveTeacherPersonId(actor);
+        if (teacherPersonId == null) {
+            return List.of();
+        }
+        return englishClassDAO.findByTeacherID(teacherPersonId);
     }
 
     private EnglishClass findSelectedClass(List<EnglishClass> classes, String classID) {
@@ -290,12 +372,70 @@ public class TeacherResultController extends HttpServlet {
         return new ArrayList<>(summaries.values());
     }
 
-    private String buildExamCode(String classID, String testType, LocalDate takenAt) {
-        String normalized = testType.toUpperCase().replaceAll("[^A-Z0-9]+", "_").replaceAll("^_+|_+$", "");
-        if (normalized.isBlank()) {
-            normalized = "TEST";
+    private String resolveSubmittedTestType(HttpServletRequest req, UserAccount actor) {
+        String testType = trim(req.getParameter("testType"));
+        if (testType == null) {
+            throw new IllegalArgumentException("Loai bai test khong duoc de trong");
         }
-        return classID + "_" + normalized + "_" + takenAt;
+        if (actor.getRole() != UserRole.TEACHER) {
+            if (!TEST_TOEIC_2_SKILLS.equals(testType) && !TEST_TOEIC_4_SKILLS.equals(testType) && !TEST_IELTS.equals(testType)) {
+                throw new IllegalArgumentException("Staff chi duoc tao bai TOEIC 2 ky nang, TOEIC 4 ky nang hoac IELTS");
+            }
+        }
+        if (actor.getRole() == UserRole.TEACHER && testType.length() > 100) {
+            throw new IllegalArgumentException("Ten bai test khong duoc vuot qua 100 ky tu");
+        }
+        return testType;
+    }
+
+    private String resolveExamFormat(HttpServletRequest req, UserAccount actor, String testType) {
+        if (actor.getRole() != UserRole.TEACHER) {
+            return TEST_IELTS.equals(testType) ? FORMAT_IELTS : FORMAT_TOEIC;
+        }
+        return normalizeExamFormat(req.getParameter("examFormat"));
+    }
+
+    private String normalizeExamFormat(String value) {
+        String examFormat = trim(value);
+        if (examFormat == null) {
+            throw new IllegalArgumentException("Chon he diem TOEIC hoac IELTS cho bai test");
+        }
+
+        if (FORMAT_TOEIC.equalsIgnoreCase(examFormat)) {
+            return FORMAT_TOEIC;
+        }
+        if (FORMAT_IELTS.equalsIgnoreCase(examFormat)) {
+            return FORMAT_IELTS;
+        }
+        throw new IllegalArgumentException("He diem bai test khong hop le");
+    }
+
+    private SkillSelection resolveSkillSelection(HttpServletRequest req, UserAccount actor, String testType) {
+        if (actor.getRole() != UserRole.TEACHER) {
+            if (TEST_TOEIC_2_SKILLS.equals(testType)) {
+                return new SkillSelection(true, true, false, false);
+            }
+            if (TEST_TOEIC_4_SKILLS.equals(testType) || TEST_IELTS.equals(testType)) {
+                return new SkillSelection(true, true, true, true);
+            }
+        }
+        boolean listening = req.getParameter("hasListening") != null;
+        boolean reading = req.getParameter("hasReading") != null;
+        boolean speaking = req.getParameter("hasSpeaking") != null;
+        boolean writing = req.getParameter("hasWriting") != null;
+        if (!listening && !reading && !speaking && !writing) {
+            throw new IllegalArgumentException("Can chon it nhat mot ky nang cho bai test");
+        }
+        return new SkillSelection(listening, reading, speaking, writing);
+    }
+
+    private String buildExamCode(String classID, String testType, String examFormat, LocalDate takenAt) {
+        String normalizedType = testType.toUpperCase().replaceAll("[^A-Z0-9]+", "_").replaceAll("^_+|_+$", "");
+        String normalizedFormat = examFormat.toUpperCase().replaceAll("[^A-Z0-9]+", "_");
+        if (normalizedType.isBlank()) {
+            normalizedType = "TEST";
+        }
+        return classID + "_" + normalizedFormat + "_" + normalizedType + "_" + takenAt;
     }
 
     private LocalDate parseDate(String value) {
@@ -306,21 +446,55 @@ public class TeacherResultController extends HttpServlet {
         return LocalDate.parse(trimmed);
     }
 
-    private Double parseScore(String value) {
+    private Double parseIeltsBand(String value, String skillName) {
         String trimmed = trim(value);
         if (trimmed == null) {
             return null;
         }
+
         Double score = Double.valueOf(trimmed);
-        if (score < 0d || score > 10d) {
-            throw new IllegalArgumentException("Diem phai nam trong khoang 0 den 10");
+        if (score < 0d || score > 9d) {
+            throw new IllegalArgumentException(skillName + " cua IELTS phai nam trong khoang 0 den 9");
+        }
+        double remainder = score * 2d - Math.floor(score * 2d);
+        if (remainder > 0d) {
+            throw new IllegalArgumentException(skillName + " cua IELTS chi nhan buoc 0.5");
         }
         return score;
     }
 
-    private void redirectWithError(HttpServletRequest req, HttpServletResponse resp, String classID, String examCode,
-            String error) throws IOException {
-        StringBuilder target = new StringBuilder(req.getContextPath()).append("/teacher/results");
+    private Integer parseToeicRaw(String value, String skillName) {
+        String trimmed = trim(value);
+        if (trimmed == null) {
+            return null;
+        }
+        Integer raw = Integer.valueOf(trimmed);
+        int maxRaw;
+        if ("Listening".equalsIgnoreCase(skillName) || "Reading".equalsIgnoreCase(skillName)) {
+            maxRaw = 100;
+        } else if ("Speaking".equalsIgnoreCase(skillName)) {
+            maxRaw = 11;
+        } else {
+            maxRaw = 8;
+        }
+        if (raw < 0 || raw > maxRaw) {
+            throw new IllegalArgumentException(skillName + " cua TOEIC phai nam trong khoang 0 den " + maxRaw);
+        }
+        return raw;
+    }
+
+    private void validateArrayLength(boolean enabled, String[] studentEmails, String[] values, String skillName) {
+        if (!enabled) {
+            return;
+        }
+        if (values == null || values.length != studentEmails.length) {
+            throw new IllegalArgumentException("Du lieu diem " + skillName + " khong hop le");
+        }
+    }
+
+    private void redirectWithError(HttpServletRequest req, HttpServletResponse resp, UserAccount actor, String classID,
+            String examCode, String error) throws IOException {
+        StringBuilder target = new StringBuilder(req.getContextPath()).append(resolveDashboardPath(actor));
         boolean hasQuery = false;
         String mode = trim(req.getParameter("mode"));
         if (mode != null) {
@@ -343,15 +517,30 @@ public class TeacherResultController extends HttpServlet {
 
     private String resolveMessage(String msg) {
         if ("login_success".equals(msg)) {
-            return "Dang nhap thanh cong voi vai tro giao vien";
+            return "Dang nhap thanh cong va san sang quan ly diem";
         }
         if ("test_created".equals(msg)) {
-            return "Da tao bai test cho lop hoc va san sang nhap diem";
+            return "Da tao bai test va khoi tao bang diem theo tung ky nang";
         }
         if ("scores_saved".equals(msg)) {
-            return "Da luu diem va tu dong xep loai";
+            return "Da luu diem tung ky nang va cap nhat diem tong";
         }
         return null;
+    }
+
+    private String buildDashboardTarget(UserAccount actor, String classID, String examCode, String msg) {
+        return new StringBuilder(resolveDashboardPath(actor))
+                .append("?mode=input&classID=")
+                .append(classID)
+                .append("&examCode=")
+                .append(examCode)
+                .append("&msg=")
+                .append(msg)
+                .toString();
+    }
+
+    private String resolveDashboardPath(UserAccount actor) {
+        return actor.getRole() == UserRole.TEACHER ? "/teacher/results" : "/staff/results";
     }
 
     private String trim(String value) {
@@ -360,5 +549,8 @@ public class TeacherResultController extends HttpServlet {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private record SkillSelection(boolean listening, boolean reading, boolean speaking, boolean writing) {
     }
 }

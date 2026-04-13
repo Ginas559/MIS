@@ -106,6 +106,21 @@ public class ExamResultDAO extends AbstractDAO<ExamResult> {
         }
     }
 
+    public List<ExamResult> findByStudentEmail(String studentEmail) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<ExamResult> query = em.createQuery(
+                    "SELECT er FROM ExamResult er "
+                            + "WHERE er.studentEmail = :studentEmail "
+                            + "ORDER BY er.takenAt DESC, er.classID ASC, er.examCode ASC",
+                    ExamResult.class);
+            query.setParameter("studentEmail", studentEmail);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
     private boolean existsDuplicate(EntityManager em, ExamResult candidate) {
         Long count = em.createQuery(
                 "SELECT COUNT(er) FROM ExamResult er "

@@ -85,6 +85,8 @@
             <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/admin/class">Danh sach lop hoc</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/schedule">Quan ly lich hoc</a>
             <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/admin/payment/cash">Xac nhan tien mat</a>
+            <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/staff/results?mode=input">Nhap diem dau vao / thi thu / cuoi khoa</a>
+            <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/staff/results?mode=view">Xem bang diem tong hop</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/roadmap-grants">Cap quyen roadmap</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/roadmap-management">CRUD roadmap</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
