@@ -124,7 +124,34 @@ public class ExamResult implements Serializable {
     }
 
     public String calculateGrade() {
-        return null;
+        Double overall = calculateOverallScore();
+        if (overall == null) {
+            return null;
+        }
+
+        if (isIeltsFormat()) {
+            if (overall >= 8.0) {
+                return "A";
+            }
+            if (overall >= 6.5) {
+                return "B";
+            }
+            if (overall >= 5.0) {
+                return "C";
+            }
+            return "D";
+        }
+
+        if (overall >= 900) {
+            return "A";
+        }
+        if (overall >= 700) {
+            return "B";
+        }
+        if (overall >= 500) {
+            return "C";
+        }
+        return "D";
     }
 
     public Double calculateOverallScore() {
