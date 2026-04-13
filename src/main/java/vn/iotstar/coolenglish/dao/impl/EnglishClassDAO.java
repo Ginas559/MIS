@@ -85,5 +85,22 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
             em.close();
         }
     }
+
+    public java.util.List<EnglishClass> findByTeacherID(Long teacherID) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<EnglishClass> query = em.createQuery(
+                    "SELECT c FROM EnglishClass c "
+                            + "LEFT JOIN FETCH c.course "
+                            + "LEFT JOIN FETCH c.room "
+                            + "WHERE c.teacherID = :teacherID "
+                            + "ORDER BY c.className",
+                    EnglishClass.class);
+            query.setParameter("teacherID", teacherID);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }
 

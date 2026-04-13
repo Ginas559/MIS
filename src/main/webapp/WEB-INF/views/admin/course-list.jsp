@@ -1,16 +1,22 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Course" %>
+<%@ page import="vn.iotstar.coolenglish.entity.EnglishClass" %>
 <%@ page import="vn.iotstar.coolenglish.entity.UserAccount" %>
 <%@ page import="vn.iotstar.coolenglish.enums.UserRole" %>
 <%
     List<Course> courses = (List<Course>) request.getAttribute("courses");
     Set<String> enrolledCourseIds = (Set<String>) request.getAttribute("enrolledCourseIds");
+    Map<String, List<EnglishClass>> teacherClassesByCourse =
+            (Map<String, List<EnglishClass>>) request.getAttribute("teacherClassesByCourse");
     UserAccount currentUser = (UserAccount) session.getAttribute("user");
     boolean managementView = Boolean.TRUE.equals(request.getAttribute("managementView"));
     boolean canManage = currentUser != null
             && (currentUser.getRole() == UserRole.ADMIN || currentUser.getRole() == UserRole.STAFF);
+    boolean isTeacher = currentUser != null && currentUser.getRole() == UserRole.TEACHER;
+    boolean isStudent = currentUser != null && currentUser.getRole() == UserRole.STUDENT;
     Integer currentPage = (Integer) request.getAttribute("currentPage");
     Integer totalPages = (Integer) request.getAttribute("totalPages");
     Integer totalItems = (Integer) request.getAttribute("totalItems");
@@ -79,6 +85,8 @@
             <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/admin/class">Danh sach lop hoc</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/schedule">Quan ly lich hoc</a>
             <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/admin/payment/cash">Xac nhan tien mat</a>
+            <a class="btn btn-outline-dark btn-sm" href="${pageContext.request.contextPath}/staff/results?mode=input">Nhap diem dau vao / thi thu / cuoi khoa</a>
+            <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/staff/results?mode=view">Xem bang diem tong hop</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/roadmap-grants">Cap quyen roadmap</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/roadmap-management">CRUD roadmap</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
@@ -108,7 +116,13 @@
                         <th>Duration</th>
                         <th>Fee</th>
                         <th>Status</th>
-                        <% if (canManage && managementView) { %><th>Thao tac</th><% } else { %><th>Mua khoa hoc</th><% } %>
+                        <% if (canManage && managementView) { %>
+                        <th>Thao tac</th>
+                        <% } else if (isTeacher) { %>
+                        <th>Bang diem</th>
+                        <% } else { %>
+                        <th>Mua khoa hoc</th>
+                        <% } %>
                     </tr>
                 </thead>
                 <tbody>
@@ -132,10 +146,35 @@
                                onclick="return confirm('Xoa khoa hoc nay?');">Xoa</a>
                             <% } %>
                         </td>
+                        <% } else if (isTeacher) { %>
+                        <td>
+                            <%
+                                List<EnglishClass> assignedClasses = teacherClassesByCourse == null
+                                        ? null
+                                        : teacherClassesByCourse.get(course.getCourseID());
+                            %>
+                            <% if (assignedClasses != null && !assignedClasses.isEmpty()) { %>
+                                <% for (EnglishClass assignedClass : assignedClasses) { %>
+                                    <div class="mb-2">
+                                        <span class="app-subtle d-block">Lop <%= assignedClass.getClassID() %> - <%= assignedClass.getClassName() %></span>
+                                        <a class="btn btn-sky btn-sm"
+                                           href="${pageContext.request.contextPath}/teacher/results?mode=input&classID=<%= assignedClass.getClassID() %>">
+                                            Nhap diem
+                                        </a>
+                                        <a class="btn btn-outline-secondary btn-sm"
+                                           href="${pageContext.request.contextPath}/teacher/results?mode=view&classID=<%= assignedClass.getClassID() %>">
+                                            Xem diem
+                                        </a>
+                                    </div>
+                                <% } %>
+                            <% } else { %>
+                                <span class="btn btn-outline-secondary btn-sm disabled">Chua duoc phan lop</span>
+                            <% } %>
+                        </td>
                         <% } else { %>
                         <td>
                             <% boolean alreadyEnrolled = enrolledCourseIds != null && enrolledCourseIds.contains(course.getCourseID()); %>
-                            <% if (alreadyEnrolled) { %>
+                            <% if (isStudent && alreadyEnrolled) { %>
                                 <span class="btn btn-success btn-sm disabled">Da ghi danh</span>
                             <% } else { %>
                             <a class="btn btn-sky btn-sm"

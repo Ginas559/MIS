@@ -70,4 +70,42 @@ public class EnrollmentDAO extends AbstractDAO<Enrollment> {
             em.close();
         }
     }
+
+    public List<Enrollment> findByClassID(String classID) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Enrollment> query = em.createQuery(
+                    "SELECT e FROM Enrollment e "
+                            + "JOIN FETCH e.student s "
+                            + "WHERE e.englishClass.classID = :classID "
+                            + "ORDER BY s.fullName",
+                    Enrollment.class);
+            query.setParameter("classID", classID);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Enrollment> findByStudentEmailWithDetails(String studentEmail) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Enrollment> query = em.createQuery(
+                    "SELECT DISTINCT e FROM Enrollment e "
+                            + "JOIN FETCH e.student s "
+                            + "JOIN FETCH e.englishClass c "
+                            + "LEFT JOIN FETCH c.course "
+                            + "LEFT JOIN FETCH c.room "
+                            + "LEFT JOIN FETCH c.teacher "
+                            + "LEFT JOIN FETCH c.schedule sch "
+                            + "LEFT JOIN FETCH sch.sessions "
+                            + "WHERE s.email = :studentEmail "
+                            + "ORDER BY c.startDate DESC, c.className ASC",
+                    Enrollment.class);
+            query.setParameter("studentEmail", studentEmail);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }

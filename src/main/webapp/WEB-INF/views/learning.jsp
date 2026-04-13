@@ -1,14 +1,13 @@
-    <c:if test="${currentContent == null}">
-        <p>ChÆ°a cÃ³ há»c liá»u phÃ¹ há»£p.</p>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="vn.iotstar.coolenglish.entity.AcademicContent" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Module" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <%!
     private boolean hasChildren(AcademicContent content) {
-        if (content == null) {
-            return false;
-        }
+        if (content == null) return false;
         List<AcademicContent> children = content.getChildren();
         return children != null && !children.isEmpty();
     }
@@ -17,21 +16,23 @@
         return URLEncoder.encode(value == null ? "" : value, "UTF-8");
     }
 
-    private void renderNode(jakarta.servlet.jsp.JspWriter out, AcademicContent node, Long currentContentId,
-            String roadmapCode, String contextPath) throws Exception {
-        if (node == null) {
-            return;
-        }
+    private void renderNode(jakarta.servlet.jsp.JspWriter out, AcademicContent node,
+            Long currentContentId, String roadmapCode, String contextPath) throws Exception {
+
+        if (node == null) return;
 
         boolean active = currentContentId != null && currentContentId.equals(node.getId());
         boolean branch = hasChildren(node);
 
         out.write("<li class='tree-node'>");
+
         if (branch) {
             out.write("<span class='tree-label tree-branch" + (active ? " active" : "") + "'>" + node.getTitle() + "</span>");
         } else {
-            String url = contextPath + "/learning?roadmapCode=" + encode(roadmapCode) + "&title=" + encode(node.getTitle());
-            out.write("<a class='tree-label tree-leaf" + (active ? " active" : "") + "' href='" + url + "'>" + node.getTitle() + "</a>");
+            String url = contextPath + "/learning?roadmapCode=" + encode(roadmapCode)
+                    + "&title=" + encode(node.getTitle());
+            out.write("<a class='tree-label tree-leaf" + (active ? " active" : "") +
+                    "' href='" + url + "'>" + node.getTitle() + "</a>");
         }
 
         if (branch) {
@@ -45,11 +46,12 @@
         out.write("</li>");
     }
 %>
-    </c:if>
-        <c:if test="${nextContent != null}">
-            <c:url var="nextLearningUrl" value="/learning">
-                <c:param name="title" value="${nextContent.title}" />
-                <c:param name="roadmapCode" value="${roadmapCode}" />
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Learning</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/bootstrap/css/bootstrap.min.css">
     <style>
         .layout { display: flex; gap: 20px; align-items: flex-start; }
@@ -62,11 +64,11 @@
         .tree-leaf:hover { text-decoration: underline; }
         .active { font-weight: 700; color: #0d6efd; }
     </style>
-            </c:url>
+</head>
+
 <body class="p-3">
     <h2>Vu tru Hoc lieu Thong minh</h2>
-        </c:if>
-    </c:if>
+
     <div class="layout">
         <aside class="sidebar">
             <h5 class="mb-3">Lo trinh hoc tap</h5>
@@ -75,6 +77,7 @@
                 Long currentContentId = (Long) request.getAttribute("currentContentId");
                 String roadmapCode = (String) request.getAttribute("roadmapCode");
                 String contextPath = request.getContextPath();
+
                 if (rootModule != null) {
                     out.write("<ul class='tree-list'>");
                     renderNode(out, rootModule, currentContentId, roadmapCode, contextPath);
@@ -86,51 +89,37 @@
         </aside>
 
         <main class="content">
-            <c:if test="${currentContent != null}">
-                <h3>Bai hoc hien tai: ${currentContent.title}</h3>
-                <pre>${renderedContent}</pre>
-    <c:if test="${currentContent != null}">
-                <c:if test="${premiumLocked}">
-                    <p style="color: red;">Ban chua duoc cap quyen vao roadmap nay. Vui long lien he Admin/Staff.</p>
-                </c:if>
-    <h2>VÅ© trá»¥ Há»c liá»u ThÃ´ng minh</h2>
-                <c:if test="${nextContent != null}">
-                    <c:url var="nextLearningUrl" value="/learning">
-                        <c:param name="title" value="${nextContent.title}" />
-                        <c:param name="roadmapCode" value="${roadmapCode}" />
-                    </c:url>
-                    <p>
-                        <a href="${nextLearningUrl}">Bai tiep theo: ${nextContent.title}</a>
-                    </p>
-                </c:if>
-            </c:if>
+            <c:choose>
+                <c:when test="${currentContent != null}">
+                    <h3>Bai hoc hien tai: ${currentContent.title}</h3>
+                    
+                    <c:if test="${premiumLocked}">
+                        <div class="alert alert-danger">
+                            Ban chua duoc cap quyen vao roadmap nay. Vui long lien he Admin/Staff.
+                        </div>
+                    </c:if>
 
-            <c:if test="${currentContent == null}">
-                <p>Chua co hoc lieu phu hop.</p>
-            </c:if>
+                    <div class="learning-body">
+                        <pre>${renderedContent}</pre>
+                    </div>
+
+                    <c:if test="${nextContent != null}">
+                        <c:url var="nextLearningUrl" value="/learning">
+                            <c:param name="title" value="${nextContent.title}" />
+                            <c:param name="roadmapCode" value="${roadmapCode}" />
+                        </c:url>
+                        <hr>
+                        <p>
+                            <strong>Bai tiep theo:</strong> 
+                            <a href="${nextLearningUrl}">${nextContent.title}</a>
+                        </p>
+                    </c:if>
+                </c:when>
+                <c:otherwise>
+                    <p class="text-muted">Chua co hoc lieu phu hop.</p>
+                </c:otherwise>
+            </c:choose>
         </main>
     </div>
-        <h3>BÃ i há»c hiá»n táº¡i: ${currentContent.title}</h3>
-        <pre>${renderedContent}</pre>
-
-        <c:if test="${premiumLocked}">
-            <p style="color: red;">Ban chua duoc cap quyen vao roadmap nay. Vui long lien he Admin/Staff.</p>
-        </c:if>
-
-        <c:if test="${nextContent != null}">
-            <c:url var="nextLearningUrl" value="/learning">
-                <c:param name="title" value="${nextContent.title}" />
-                <c:param name="roadmapCode" value="${roadmapCode}" />
-            </c:url>
-            <p>
-                <a href="${nextLearningUrl}">Bai tiep theo: ${nextContent.title}</a>
-            </p>
-        </c:if>
-    </c:if>
-
-    <c:if test="${currentContent == null}">
-        <p>ChÆ°a cÃ³ há»c liá»u phÃ¹ há»£p.</p>
-    </c:if>
 </body>
 </html>
-
