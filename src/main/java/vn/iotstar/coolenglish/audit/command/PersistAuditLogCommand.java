@@ -22,7 +22,7 @@ public class PersistAuditLogCommand implements AuditCommand {
     @Override
     public void undo() {
         if (persistedAuditId != null) {
-            receiver.deleteById(persistedAuditId);
+            receiver.appendUndoEntry(persistedAuditId);
         }
     }
 }

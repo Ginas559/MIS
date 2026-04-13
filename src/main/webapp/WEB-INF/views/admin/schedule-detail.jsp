@@ -27,6 +27,7 @@
         <a class="app-brand" href="${pageContext.request.contextPath}/index.jsp">CoolEnglish</a>
         <div class="d-flex gap-2">
             <% if (canManage) { %>
+            <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/course">Quan ly khoa hoc</a>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/room">Quan ly phong hoc</a>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/class">Quan ly lop hoc</a>
@@ -46,6 +47,7 @@
         <div class="alert alert-warning">
             <h5>Khong tim thay lich hoc</h5>
             <p>Lich hoc ban tim kiem khong ton tai hoac da bi xoa.</p>
+            <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-secondary btn-sm">Bảng điều khiển</a>
             <a href="${pageContext.request.contextPath}/admin/schedule" class="btn btn-outline-secondary btn-sm">Quay ve danh sach</a>
         </div>
         <% } else { %>
@@ -57,6 +59,7 @@
                 <p class="app-subtle mb-0">Lich ID: <strong><%= schedule.getScheduleID() %></strong></p>
             </div>
             <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
                 <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/schedule">Quay ve</a>
                 <% if (canManage) { %>
                 <a class="btn btn-sky btn-sm" href="${pageContext.request.contextPath}/admin/schedule/add">Tao lich moi</a>

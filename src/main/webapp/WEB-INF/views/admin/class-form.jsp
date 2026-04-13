@@ -110,6 +110,7 @@
 
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-sky"><%= editing ? "Cap nhat" : "Them moi" %></button>
+                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/class">Quay lai</a>
             </div>
         </form>
