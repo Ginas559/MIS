@@ -50,6 +50,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Learning</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/bootstrap/css/bootstrap.min.css">
     <style>
@@ -66,61 +67,59 @@
 </head>
 
 <body class="p-3">
+    <h2>Vu tru Hoc lieu Thong minh</h2>
 
-<h2>Vu tru Hoc lieu Thong minh</h2>
+    <div class="layout">
+        <aside class="sidebar">
+            <h5 class="mb-3">Lo trinh hoc tap</h5>
+            <%
+                Module rootModule = (Module) request.getAttribute("rootModule");
+                Long currentContentId = (Long) request.getAttribute("currentContentId");
+                String roadmapCode = (String) request.getAttribute("roadmapCode");
+                String contextPath = request.getContextPath();
 
-<div class="layout">
+                if (rootModule != null) {
+                    out.write("<ul class='tree-list'>");
+                    renderNode(out, rootModule, currentContentId, roadmapCode, contextPath);
+                    out.write("</ul>");
+                } else {
+                    out.write("<p class='text-muted'>Chua co du lieu roadmap.</p>");
+                }
+            %>
+        </aside>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <h5 class="mb-3">Lo trinh hoc tap</h5>
-        <%
-            Module rootModule = (Module) request.getAttribute("rootModule");
-            Long currentContentId = (Long) request.getAttribute("currentContentId");
-            String roadmapCode = (String) request.getAttribute("roadmapCode");
-            String contextPath = request.getContextPath();
+        <main class="content">
+            <c:choose>
+                <c:when test="${currentContent != null}">
+                    <h3>Bai hoc hien tai: ${currentContent.title}</h3>
+                    
+                    <c:if test="${premiumLocked}">
+                        <div class="alert alert-danger">
+                            Ban chua duoc cap quyen vao roadmap nay. Vui long lien he Admin/Staff.
+                        </div>
+                    </c:if>
 
-            if (rootModule != null) {
-                out.write("<ul class='tree-list'>");
-                renderNode(out, rootModule, currentContentId, roadmapCode, contextPath);
-                out.write("</ul>");
-            } else {
-                out.write("<p class='text-muted'>Chua co du lieu roadmap.</p>");
-            }
-        %>
-    </aside>
+                    <div class="learning-body">
+                        <pre>${renderedContent}</pre>
+                    </div>
 
-    <!-- Content -->
-    <main class="content">
-
-        <c:if test="${currentContent != null}">
-            <h3>Bai hoc hien tai: ${currentContent.title}</h3>
-            <pre>${renderedContent}</pre>
-
-            <c:if test="${premiumLocked}">
-                <p style="color: red;">
-                    Ban chua duoc cap quyen vao roadmap nay. Vui long lien he Admin/Staff.
-                </p>
-            </c:if>
-
-            <c:if test="${nextContent != null}">
-                <c:url var="nextLearningUrl" value="/learning">
-                    <c:param name="title" value="${nextContent.title}" />
-                    <c:param name="roadmapCode" value="${roadmapCode}" />
-                </c:url>
-                <p>
-                    <a href="${nextLearningUrl}">Bai tiep theo: ${nextContent.title}</a>
-                </p>
-            </c:if>
-        </c:if>
-
-        <c:if test="${currentContent == null}">
-            <p>Chua co hoc lieu phu hop.</p>
-        </c:if>
-
-    </main>
-
-</div>
-
+                    <c:if test="${nextContent != null}">
+                        <c:url var="nextLearningUrl" value="/learning">
+                            <c:param name="title" value="${nextContent.title}" />
+                            <c:param name="roadmapCode" value="${roadmapCode}" />
+                        </c:url>
+                        <hr>
+                        <p>
+                            <strong>Bai tiep theo:</strong> 
+                            <a href="${nextLearningUrl}">${nextContent.title}</a>
+                        </p>
+                    </c:if>
+                </c:when>
+                <c:otherwise>
+                    <p class="text-muted">Chua co hoc lieu phu hop.</p>
+                </c:otherwise>
+            </c:choose>
+        </main>
+    </div>
 </body>
 </html>

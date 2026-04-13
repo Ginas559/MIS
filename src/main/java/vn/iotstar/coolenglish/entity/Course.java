@@ -26,6 +26,9 @@ public class Course implements Serializable {
     private Double fee;
     private String status;
 
+    @Column(name = "image", length = 500)
+    private String image;
+
     public Course() {
     }
 
@@ -95,5 +98,12 @@ public class Course implements Serializable {
     public void setStatus(String status) {
         this.status = status;
     }
-}
 
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+}
