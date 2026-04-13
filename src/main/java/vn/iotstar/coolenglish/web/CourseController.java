@@ -4,11 +4,13 @@ import java.io.IOException;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 import vn.iotstar.coolenglish.dao.impl.CourseDAO;
 import vn.iotstar.coolenglish.dao.impl.EnrollmentDAO;
 import vn.iotstar.coolenglish.entity.Course;
@@ -16,7 +18,13 @@ import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
 import vn.iotstar.coolenglish.factory.SecurityAccessFactory;
 import vn.iotstar.coolenglish.service.ICourseService;
+import vn.iotstar.coolenglish.util.UploadUtils;
 
+@MultipartConfig(
+    maxFileSize = 5242880,
+    maxRequestSize = 5242880,
+    fileSizeThreshold = 0
+)
 @WebServlet(urlPatterns = { "/course", "/admin/course", "/admin/course/add", "/admin/course/update", "/admin/course/delete",
         "/admin/course/update-fee" })
 public class CourseController extends HttpServlet {
@@ -156,7 +164,7 @@ public class CourseController extends HttpServlet {
     }
 
     private void saveCourse(HttpServletRequest req, HttpServletResponse resp, boolean update)
-            throws IOException {
+            throws ServletException, IOException {
         Course course = new Course();
         course.setCourseID(getCourseID(req));
         course.setCourseName(trim(req.getParameter("courseName")));
@@ -165,6 +173,22 @@ public class CourseController extends HttpServlet {
         course.setDuration(parseInteger(req.getParameter("duration")));
         course.setFee(parseDouble(req.getParameter("fee")));
         course.setStatus(normalizeCourseStatus(req.getParameter("status")));
+
+        // Xử lý upload ảnh khóa học nếu có
+        try {
+            Part imagePart = req.getPart("courseImage");
+            if (imagePart != null && imagePart.getSize() > 0) {
+                String imageUrl = UploadUtils.uploadImage(imagePart);
+                if (course.getCourseID() != null) {
+                    // Nếu là update, tạo public ID riêng
+                    imageUrl = UploadUtils.uploadImage(imagePart);
+                }
+                course.setImage(imageUrl);
+            }
+        } catch (IllegalArgumentException | IOException e) {
+            // Nếu upload ảnh bị lỗi nhưng dữ liệu khóa học hợp lệ, vẫn lưu
+            // Có thể log warning ở đây
+        }
 
         if (update) {
             courseDAO.update(course);
