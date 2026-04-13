@@ -1,5 +1,5 @@
     <c:if test="${currentContent == null}">
-        <p>Chưa có học liệu phù hợp.</p>
+        <p>ChÆ°a cÃ³ há»c liá»u phÃ¹ há»£p.</p>
 <%@ page import="java.util.List" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="vn.iotstar.coolenglish.entity.AcademicContent" %>
@@ -93,7 +93,7 @@
                 <c:if test="${premiumLocked}">
                     <p style="color: red;">Ban chua duoc cap quyen vao roadmap nay. Vui long lien he Admin/Staff.</p>
                 </c:if>
-    <h2>Vũ trụ Học liệu Thông minh</h2>
+    <h2>VÅ© trá»¥ Há»c liá»u ThÃ´ng minh</h2>
                 <c:if test="${nextContent != null}">
                     <c:url var="nextLearningUrl" value="/learning">
                         <c:param name="title" value="${nextContent.title}" />
@@ -110,7 +110,7 @@
             </c:if>
         </main>
     </div>
-        <h3>Bài học hiện tại: ${currentContent.title}</h3>
+        <h3>BÃ i há»c hiá»n táº¡i: ${currentContent.title}</h3>
         <pre>${renderedContent}</pre>
 
         <c:if test="${premiumLocked}">
@@ -129,7 +129,7 @@
     </c:if>
 
     <c:if test="${currentContent == null}">
-        <p>Chưa có học liệu phù hợp.</p>
+        <p>ChÆ°a cÃ³ há»c liá»u phÃ¹ há»£p.</p>
     </c:if>
 </body>
 </html>

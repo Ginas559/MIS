@@ -37,6 +37,9 @@ public abstract class AcademicContentEntity implements AcademicContent, Serializ
     @Column(name = "description", length = 2000)
     private String description;
 
+    @Column(name = "image_link", length = 500)
+    private String imageLink;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Module parentModule;
@@ -78,6 +81,14 @@ public abstract class AcademicContentEntity implements AcademicContent, Serializ
         this.description = description;
     }
 
+    public String getImageLink() {
+        return imageLink;
+    }
+
+    public void setImageLink(String imageLink) {
+        this.imageLink = imageLink;
+    }
+
     public Module getParentModule() {
         return parentModule;
     }
@@ -101,4 +112,3 @@ public abstract class AcademicContentEntity implements AcademicContent, Serializ
         return Collections.emptyList();
     }
 }
-

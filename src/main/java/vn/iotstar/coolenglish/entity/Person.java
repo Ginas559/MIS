@@ -41,6 +41,9 @@ public abstract class Person {
     @Column(name = "email", length = 100)
     private String email;
 
+    @Column(name = "avatar", length = 500)
+    private String avatar;
+
     public Long getId() {
         return id;
     }
@@ -81,6 +84,14 @@ public abstract class Person {
         this.email = email;
     }
 
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
     public void updateProfile(String fullName, Gender gender, String phone, String email) {
         this.fullName = fullName;
         this.gender = gender;
@@ -88,6 +99,13 @@ public abstract class Person {
         this.email = email;
     }
 
+    public void updateProfile(String fullName, Gender gender, String phone, String email, String avatar) {
+        this.fullName = fullName;
+        this.gender = gender;
+        this.phone = phone;
+        this.email = email;
+        this.avatar = avatar;
+    }
+
     public abstract void showSpecificInfo();
 }
-

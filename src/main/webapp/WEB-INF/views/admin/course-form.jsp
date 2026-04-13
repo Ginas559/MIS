@@ -13,12 +13,51 @@
     <title><%= editing ? "Sua khoa hoc" : "Them khoa hoc" %></title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app.css">
+    <style>
+        .image-preview {
+            max-width: 300px;
+            max-height: 300px;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .image-input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .form-file {
+            display: block;
+        }
+        .form-file input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #212529;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            transition: border-color 0.15s ease-in-out;
+        }
+        .form-file input[type="file"]:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .image-info {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body class="app-body">
 <div class="container py-4">
     <div class="app-section app-card">
         <h1 class="h4 app-title mb-3"><%= editing ? "Sua khoa hoc" : "Them khoa hoc" %></h1>
-        <form method="post" action="<%= actionUrl %>" class="vstack gap-3">
+        <form method="post" action="<%= actionUrl %>" class="vstack gap-3" enctype="multipart/form-data">
             <div>
                 <label class="form-label">Ma khoa hoc</label>
                 <input type="text" class="form-control" name="courseID"
@@ -34,6 +73,17 @@
             <div>
                 <label class="form-label">Mo ta</label>
                 <textarea class="form-control" rows="4" name="description"><%= course == null || course.getDescription() == null ? "" : course.getDescription() %></textarea>
+            </div>
+
+            <div class="image-input-wrapper">
+                <label class="form-label">Anh khoa hoc</label>
+                <% if (course != null && course.getImage() != null && !course.getImage().isEmpty()) { %>
+                    <img src="<%= course.getImage() %>" alt="Course Image" class="image-preview">
+                <% } %>
+                <div class="form-file">
+                    <input type="file" id="courseImage" name="courseImage" class="form-control" accept="image/*">
+                    <small class="image-info">Dinh dang: JPG, PNG. Dung luong toi da: 5MB</small>
+                </div>
             </div>
 
             <div>
