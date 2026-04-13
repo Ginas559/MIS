@@ -8,8 +8,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.iotstar.coolenglish.dao.impl.TeacherDAO;
 import vn.iotstar.coolenglish.dao.impl.UserAccountDAO;
+import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.entity.UserAccount;
+import vn.iotstar.coolenglish.enums.UserRole;
 
 /**
  * LoginController - Xử lý chức năng đăng nhập người dùng
@@ -24,6 +27,7 @@ public class LoginController extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private final UserAccountDAO userAccountDAO = new UserAccountDAO();
+    private final TeacherDAO teacherDAO = new TeacherDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -53,13 +57,24 @@ public class LoginController extends HttpServlet {
             UserAccount account = userAccountDAO.checkLogin(email, password);
 
             if (account != null) {
-                // Đăng nhập thành công - Lưu thông tin định danh vào Session
-                HttpSession session = req.getSession(true);
-                session.setAttribute("user", account); // Lưu UserAccount để dùng cho Proxy
-                session.setMaxInactiveInterval(30 * 60); // Timeout 30 phút
+                if (account.getRole() == UserRole.TEACHER && account.getRelatedID() == null
+                        && account.getEmail() != null) {
+                    Teacher teacher = teacherDAO.findByEmail(account.getEmail().trim());
+                    if (teacher != null) {
+                        account.setRelatedID(teacher.getId());
+                        userAccountDAO.update(account);
+                    }
+                }
 
-                // Chuyển hướng đến danh sách khóa học sau khi đăng nhập
-                resp.sendRedirect(req.getContextPath() + "/course?msg=login_success");
+                HttpSession session = req.getSession(true);
+                session.setAttribute("user", account);
+                session.setMaxInactiveInterval(30 * 60);
+
+                if (account.getRole() == UserRole.TEACHER) {
+                    resp.sendRedirect(req.getContextPath() + "/course?msg=login_success");
+                } else {
+                    resp.sendRedirect(req.getContextPath() + "/course?msg=login_success");
+                }
 
             } else {
                 // Đăng nhập thất bại

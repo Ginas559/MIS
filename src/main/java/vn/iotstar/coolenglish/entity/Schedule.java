@@ -11,7 +11,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -38,6 +40,13 @@ public class Schedule implements Serializable {
     @Temporal(TemporalType.DATE)
     @Column(name = "createDate")
     private Date createDate;
+
+    /**
+     * Lịch 1-1 với lớp: khóa ngoại {@code classID} nằm trên bảng Schedules.
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "classID", referencedColumnName = "classID", unique = true)
+    private EnglishClass englishClass;
 
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sessionDate ASC, sessionID ASC")
@@ -76,6 +85,14 @@ public class Schedule implements Serializable {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public EnglishClass getEnglishClass() {
+        return englishClass;
+    }
+
+    public void setEnglishClass(EnglishClass englishClass) {
+        this.englishClass = englishClass;
     }
 
     public List<Session> getSessions() {

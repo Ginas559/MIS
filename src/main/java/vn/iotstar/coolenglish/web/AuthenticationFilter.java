@@ -49,7 +49,12 @@ public class AuthenticationFilter implements Filter {
         }
 
         UserRole role = user.getRole();
-        if (role != UserRole.ADMIN && role != UserRole.STAFF) {
+        String servletPath = httpRequest.getServletPath();
+        
+        // Allow TEACHER to access /admin/schedule/* for attendance marking
+        if (role == UserRole.TEACHER && servletPath.startsWith("/admin/schedule")) {
+            // Allow
+        } else if (role != UserRole.ADMIN && role != UserRole.STAFF) {
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.jsp?msg=forbidden");
             return;
         }

@@ -46,10 +46,6 @@
     }
 %>
     </c:if>
-        <c:if test="${nextContent != null}">
-            <c:url var="nextLearningUrl" value="/learning">
-                <c:param name="title" value="${nextContent.title}" />
-                <c:param name="roadmapCode" value="${roadmapCode}" />
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/bootstrap/css/bootstrap.min.css">
     <style>
         .layout { display: flex; gap: 20px; align-items: flex-start; }
@@ -62,11 +58,14 @@
         .tree-leaf:hover { text-decoration: underline; }
         .active { font-weight: 700; color: #0d6efd; }
     </style>
+        <c:if test="${nextContent != null}">
+            <c:url var="nextLearningUrl" value="/learning">
+                <c:param name="title" value="${nextContent.title}" />
+                <c:param name="roadmapCode" value="${roadmapCode}" />
             </c:url>
 <body class="p-3">
     <h2>Vu tru Hoc lieu Thong minh</h2>
         </c:if>
-    </c:if>
     <div class="layout">
         <aside class="sidebar">
             <h5 class="mb-3">Lo trinh hoc tap</h5>

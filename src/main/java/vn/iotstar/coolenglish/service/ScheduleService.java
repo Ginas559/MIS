@@ -4,6 +4,7 @@ import java.util.List;
 
 import vn.iotstar.coolenglish.builder.ScheduleBuilder;
 import vn.iotstar.coolenglish.dao.impl.ScheduleDAO;
+import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Schedule;
 import vn.iotstar.coolenglish.entity.Session;
 
@@ -24,12 +25,16 @@ public class ScheduleService {
      * @throws IllegalStateException    if conflict is detected
      */
     public Schedule createSchedule(String scheduleID, java.util.Date createDate, String description,
-                                   List<Session> sessions) {
+                                   List<Session> sessions, EnglishClass linkedClass) {
         ScheduleBuilder builder = new ScheduleBuilder()
                 .withScheduleID(scheduleID)
                 .withCreateDate(createDate)
                 .withDescription(description)
                 .withConflictChecker(conflictService);
+
+        if (linkedClass != null) {
+            builder.withEnglishClass(linkedClass);
+        }
 
         if (sessions != null) {
             for (Session s : sessions) {
@@ -59,8 +64,8 @@ public class ScheduleService {
      * @return saved Schedule object
      */
     public Schedule createAndSaveSchedule(String scheduleID, java.util.Date createDate, String description,
-                                          List<Session> sessions) {
-        Schedule schedule = createSchedule(scheduleID, createDate, description, sessions);
+                                          List<Session> sessions, EnglishClass linkedClass) {
+        Schedule schedule = createSchedule(scheduleID, createDate, description, sessions, linkedClass);
         saveSchedule(schedule);
         return schedule;
     }
@@ -81,7 +86,7 @@ public class ScheduleService {
      * @return list of all schedules
      */
     public List<Schedule> findAllSchedules() {
-        return scheduleDAO.findAll(Schedule.class);
+        return scheduleDAO.findAllWithEnglishClass();
     }
 
     /**

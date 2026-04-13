@@ -14,8 +14,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import vn.iotstar.coolenglish.dao.impl.EnglishClassDAO;
 import vn.iotstar.coolenglish.dao.impl.RoomDAO;
 import vn.iotstar.coolenglish.dao.impl.TeacherDAO;
+import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Room;
 import vn.iotstar.coolenglish.entity.Schedule;
 import vn.iotstar.coolenglish.entity.Session;
@@ -35,6 +37,7 @@ public class ScheduleController extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     private final ScheduleService scheduleService = new ScheduleService();
+    private final EnglishClassDAO englishClassDAO = new EnglishClassDAO();
     private final RoomDAO roomDAO = new RoomDAO();
     private final TeacherDAO teacherDAO = new TeacherDAO();
 
@@ -102,9 +105,11 @@ public class ScheduleController extends HttpServlet {
     private void showAddForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         List<Room> rooms = roomDAO.findAll(Room.class);
         List<Teacher> teachers = teacherDAO.findAll(Teacher.class);
+        List<EnglishClass> assignableClasses = englishClassDAO.findAssignableForSchedule(null);
 
         req.setAttribute("rooms", rooms);
         req.setAttribute("teachers", teachers);
+        req.setAttribute("assignableClasses", assignableClasses);
         forward(req, resp, "/WEB-INF/views/admin/schedule-form.jsp");
     }
 
@@ -129,11 +134,25 @@ public class ScheduleController extends HttpServlet {
     private void saveSchedule(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             String scheduleID = req.getParameter("scheduleID");
+            String classID = trim(req.getParameter("classID"));
             String description = req.getParameter("description");
             String createDateStr = req.getParameter("createDate");
 
             if (scheduleID == null || scheduleID.trim().isEmpty()) {
                 req.setAttribute("error", "Schedule ID is required");
+                showAddForm(req, resp);
+                return;
+            }
+
+            if (classID == null || classID.isEmpty()) {
+                req.setAttribute("error", "Vui lòng chọn lớp học (mã lớp) cho lịch này");
+                showAddForm(req, resp);
+                return;
+            }
+
+            EnglishClass linkedClass = englishClassDAO.findByClassIdWithSchedule(classID);
+            if (linkedClass == null) {
+                req.setAttribute("error", "Không tìm thấy lớp: " + classID);
                 showAddForm(req, resp);
                 return;
             }
@@ -160,7 +179,8 @@ public class ScheduleController extends HttpServlet {
                     scheduleID,
                     createDate,
                     description,
-                    sessions);
+                    sessions,
+                    linkedClass);
 
             req.setAttribute("success", "Schedule created successfully: " + scheduleID);
             listSchedules(req, resp);
@@ -275,21 +295,37 @@ public class ScheduleController extends HttpServlet {
 
         List<Room> rooms = roomDAO.findAll(Room.class);
         List<Teacher> teachers = teacherDAO.findAll(Teacher.class);
+        List<EnglishClass> assignableClasses = englishClassDAO.findAssignableForSchedule(scheduleID);
 
         req.setAttribute("schedule", schedule);
         req.setAttribute("rooms", rooms);
         req.setAttribute("teachers", teachers);
+        req.setAttribute("assignableClasses", assignableClasses);
         forward(req, resp, "/WEB-INF/views/admin/schedule-form.jsp");
     }
 
     private void updateSchedule(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             String scheduleID = req.getParameter("scheduleID");
+            String classID = trim(req.getParameter("classID"));
             String description = req.getParameter("description");
             String createDateStr = req.getParameter("createDate");
 
             if (scheduleID == null || scheduleID.trim().isEmpty()) {
                 req.setAttribute("error", "Schedule ID is required");
+                showEditForm(req, resp);
+                return;
+            }
+
+            if (classID == null || classID.isEmpty()) {
+                req.setAttribute("error", "Vui lòng chọn lớp học (mã lớp) cho lịch này");
+                showEditForm(req, resp);
+                return;
+            }
+
+            EnglishClass linkedClass = englishClassDAO.findByClassIdWithSchedule(classID);
+            if (linkedClass == null) {
+                req.setAttribute("error", "Không tìm thấy lớp: " + classID);
                 showEditForm(req, resp);
                 return;
             }
@@ -319,7 +355,8 @@ public class ScheduleController extends HttpServlet {
                     scheduleID,
                     createDate,
                     description,
-                    sessions);
+                    sessions,
+                    linkedClass);
 
             req.setAttribute("success", "Schedule updated successfully: " + scheduleID);
             listSchedules(req, resp);
@@ -353,5 +390,13 @@ public class ScheduleController extends HttpServlet {
             throws ServletException, IOException {
         RequestDispatcher dispatcher = req.getRequestDispatcher(path);
         dispatcher.forward(req, resp);
+    }
+
+    private static String trim(String value) {
+        if (value == null) {
+            return null;
+        }
+        String t = value.trim();
+        return t.isEmpty() ? null : t;
     }
 }
