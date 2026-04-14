@@ -6,7 +6,6 @@ import java.util.List;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import vn.iotstar.coolenglish.config.JPAUtil;
-import vn.iotstar.coolenglish.dao.impl.ModuleDAO;
 import vn.iotstar.coolenglish.dao.impl.RoadmapDAO;
 import vn.iotstar.coolenglish.entity.AcademicContentEntity;
 import vn.iotstar.coolenglish.entity.Lesson;
@@ -15,15 +14,13 @@ import vn.iotstar.coolenglish.entity.Roadmap;
 
 public class RoadmapManagementService {
 
-    private final ModuleDAO moduleDAO;
     private final RoadmapDAO roadmapDAO;
 
     public RoadmapManagementService() {
-        this(new ModuleDAO(), new RoadmapDAO());
+        this(new RoadmapDAO());
     }
 
-    public RoadmapManagementService(ModuleDAO moduleDAO, RoadmapDAO roadmapDAO) {
-        this.moduleDAO = moduleDAO;
+    public RoadmapManagementService(RoadmapDAO roadmapDAO) {
         this.roadmapDAO = roadmapDAO;
     }
 
@@ -35,16 +32,22 @@ public class RoadmapManagementService {
         String normalizedCode = requireText(roadmapCode, "roadmapCode").toUpperCase();
         String normalizedTitle = requireText(title, "title");
 
-        Module rootModule = new Module(normalizedTitle + " - Root", description);
-        moduleDAO.insert(rootModule);
+        if (roadmapDAO.existsByCodeIgnoreCase(normalizedCode)) {
+            throw new IllegalArgumentException("Roadmap code da ton tai. Vui long dung ma khac.");
+        }
 
-        Roadmap roadmap = new Roadmap();
-        roadmap.setRoadmapCode(normalizedCode);
-        roadmap.setTitle(normalizedTitle);
-        roadmap.setDescription(description);
-        roadmap.setRootModule(rootModule);
-        roadmap.setActive(true);
-        roadmapDAO.insert(roadmap);
+        runInTransaction(em -> {
+            Module rootModule = new Module(normalizedTitle + " - Root", description);
+            em.persist(rootModule);
+
+            Roadmap roadmap = new Roadmap();
+            roadmap.setRoadmapCode(normalizedCode);
+            roadmap.setTitle(normalizedTitle);
+            roadmap.setDescription(description);
+            roadmap.setRootModule(rootModule);
+            roadmap.setActive(true);
+            em.persist(roadmap);
+        });
     }
 
     public void updateRoadmap(Long roadmapId, String title, String description, boolean active) {
@@ -113,6 +116,14 @@ public class RoadmapManagementService {
                 throw new IllegalArgumentException("Khong the xoa module khi van con bai hoc/chang con ben trong.");
             }
 
+            if (content instanceof Module) {
+                long referencedRoadmaps = roadmapDAO.countByRootModuleId(contentId);
+                if (referencedRoadmaps > 0) {
+                    throw new IllegalArgumentException(
+                            "Khong the xoa module dang la root module cua roadmap. Vui long xu ly roadmap lien quan truoc.");
+                }
+            }
+
             Module parent = content.getParentModule();
             if (parent != null) {
                 parent.remove(content);
@@ -135,6 +146,11 @@ public class RoadmapManagementService {
 
             em.remove(roadmap);
             if (rootModule != null) {
+                long referencedByOtherRoadmaps = roadmapDAO.countByRootModuleIdExcludingRoadmap(rootModule.getId(), roadmapId);
+                if (referencedByOtherRoadmaps > 0) {
+                    throw new IllegalArgumentException(
+                            "Root module dang duoc roadmap khac su dung. Khong the xoa module goc.");
+                }
                 em.remove(rootModule);
             }
         });

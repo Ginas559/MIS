@@ -26,10 +26,10 @@ public class Roadmap implements Serializable {
     @Column(name = "roadmap_code", nullable = false, unique = true, length = 50)
     private String roadmapCode;
 
-    @Column(name = "title", nullable = false, length = 255)
+    @Column(name = "title", nullable = false, length = 255, columnDefinition = "NVARCHAR(255)")
     private String title;
 
-    @Column(name = "description", length = 2000)
+    @Column(name = "description", length = 2000, columnDefinition = "NVARCHAR(2000)")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)

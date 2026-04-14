@@ -48,7 +48,6 @@ public class ClassController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
         handleRequest(req, resp, true);
     }
 
@@ -80,8 +79,12 @@ public class ClassController extends HttpServlet {
             return;
         }
 
-        if (servletPath.endsWith("/register") && isPost) {
-            registerStudent(req, resp);
+        if (servletPath.endsWith("/register")) {
+            if (isPost) {
+                registerStudent(req, resp);
+            } else {
+                showRegisterForm(req, resp, null, null, null);
+            }
             return;
         }
 
@@ -190,17 +193,37 @@ public class ClassController extends HttpServlet {
         redirectToList(req, resp);
     }
 
-    private void registerStudent(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void showRegisterForm(HttpServletRequest req, HttpServletResponse resp,
+            String studentEmail, String registerError, String registerSuccess)
+            throws ServletException, IOException {
+        String classID = getClassID(req);
+        if (classID == null) {
+            redirectToList(req, resp);
+            return;
+        }
+
+        EnglishClass clazz = englishClassDAO.findByClassID(classID);
+        req.setAttribute("classroom", clazz);
+        req.setAttribute("studentEmail", studentEmail);
+        req.setAttribute("registerError", registerError);
+        req.setAttribute("registerSuccess", registerSuccess);
+        forward(req, resp, "/WEB-INF/views/admin/class-register.jsp");
+    }
+
+    private void registerStudent(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String classID = getClassID(req);
         String studentEmail = trim(req.getParameter("studentEmail"));
 
+        if (classID == null) {
+            redirectToList(req, resp);
+            return;
+        }
+
         try {
             EnrollmentFacade.getInstance().enrollStudent(classID, studentEmail);
-            redirectToList(req, resp);
-        } catch (IllegalArgumentException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-        } catch (IllegalStateException e) {
-            resp.sendError(HttpServletResponse.SC_CONFLICT, e.getMessage());
+            showRegisterForm(req, resp, null, null, "Ghi danh thanh cong.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            showRegisterForm(req, resp, studentEmail, e.getMessage(), null);
         }
     }
 

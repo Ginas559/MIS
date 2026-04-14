@@ -1,0 +1,248 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide empty methods
+
+'====================
+' Core learning domain
+'====================
+
+interface AcademicContent
+
+abstract class AcademicContentEntity {
+  +id: Long
+  +title: String
+  +description: String
+  +imageLink: String
+}
+
+class Module {
+  +children: List<AcademicContent>
+}
+
+class Lesson {
+  +lessonType: String
+  +resourceUrl: String
+}
+
+class Roadmap {
+  +id: Long
+  +roadmapCode: String
+  +title: String
+  +description: String
+  +active: boolean
+}
+
+class RoadmapAccessGrant {
+  +id: Long
+  +userId: Long
+  +grantedBy: String
+  +grantedAt: LocalDateTime
+  +active: boolean
+}
+
+class Course {
+  +courseID: String
+  +courseName: String
+  +description: String
+  +level: String
+  +duration: Integer
+  +fee: Double
+  +status: String
+  +image: String
+}
+
+class Room {
+  +roomID: String
+  +roomName: String
+  +capacity: Integer
+  +location: String
+  +status: String
+}
+
+abstract class Person {
+  +id: Long
+  +fullName: String
+  +gender: Gender
+  +phone: String
+  +email: String
+  +avatar: String
+}
+
+class Student {
+  +studentID: String
+  +status: StudentStatus
+  +dateOfBirth: LocalDate
+  +registrationDate: LocalDate
+}
+
+class Teacher {
+  +teacherID: String
+  +status: TeacherStatus
+  +specialty: String
+  +hireDate: LocalDate
+  +certificate: String
+}
+
+class Staff {
+  +staffID: String
+  +position: String
+}
+
+class UserAccount {
+  +userID: Long
+  +email: String
+  +username: String
+  +password: String
+  +role: UserRole
+  +relatedID: Long
+}
+
+class EnglishClass {
+  +classID: String
+  +className: String
+  +startDate: LocalDate
+  +endDate: LocalDate
+  +maxStudent: Integer
+  +currentEnrollment: Integer
+  +status: ClassStatus
+  +state: ClassState <<transient>>
+}
+
+class Schedule {
+  +scheduleID: String
+  +totalSessions: Integer
+  +description: String
+  +createDate: Date
+}
+
+class Session {
+  +sessionID: String
+  +sessionName: String
+  +sessionDate: Date
+  +startTime: LocalTime
+  +endTime: LocalTime
+  +status: SessionStatus
+}
+
+class Enrollment {
+  +id: Long
+  +status: EnrollmentStatus
+  +enrolledAt: LocalDateTime
+}
+
+class Attendance {
+  +attendanceID: String
+  +checkinTime: Date
+  +status: AttendanceStatus
+  +note: String
+}
+
+class Invoice {
+  +id: Long
+  +invoiceNumber: String
+  +totalAmount: Double
+  +status: InvoiceStatus
+  +createdAt: LocalDateTime
+  +paidAt: LocalDateTime
+}
+
+class Payment {
+  +paymentID: String
+  +amount: Double
+  +paymentDate: LocalDateTime
+  +method: String
+  +status: PaymentStatus
+  +transactionRef: String
+  +redirectUrl: String
+  +note: String
+  +classID: String
+  +studentEmail: String
+}
+
+class ExamResult {
+  +id: Long
+  +partnerCode: String
+  +studentEmail: String
+  +examCode: String
+  +classID: String
+  +teacherID: Long
+  +testType: String
+  +examFormat: String
+  +grade: String
+  +score: Double
+  +hasListening: Boolean
+  +hasReading: Boolean
+  +hasSpeaking: Boolean
+  +hasWriting: Boolean
+  +listeningScore: Double
+  +readingScore: Double
+  +speakingScore: Double
+  +writingScore: Double
+  +listeningRaw: Integer
+  +readingRaw: Integer
+  +speakingRaw: Integer
+  +writingRaw: Integer
+  +takenAt: LocalDate
+  +syncedAt: LocalDateTime
+}
+
+'====================
+' Inheritance
+'====================
+
+AcademicContentEntity ..|> AcademicContent
+Module --|> AcademicContentEntity
+Lesson --|> AcademicContentEntity
+
+Student --|> Person
+Teacher --|> Person
+Staff --|> Person
+
+'====================
+' Associations
+'====================
+
+AcademicContentEntity "0..*" --> "0..1" Module : parentModule
+Roadmap "0..*" --> "1" Module : rootModule
+RoadmapAccessGrant "*" --> "1" Roadmap
+
+EnglishClass "*" --> "1" Course
+EnglishClass "*" --> "1" Room
+EnglishClass "*" --> "0..1" Teacher
+EnglishClass "1" -- "0..1" Schedule
+
+Schedule "1" o-- "0..*" Session
+Session "*" --> "0..1" Room
+Session "*" --> "0..1" Teacher
+
+Enrollment "*" --> "1" EnglishClass
+Enrollment "*" --> "1" Student
+Enrollment "1" -- "0..1" Invoice
+
+Attendance "*" --> "1" Enrollment
+Attendance "*" --> "1" Session
+
+Payment "*" --> "0..1" Invoice
+UserAccount "*" --> "0..1" Person : relatedID
+
+note right of EnglishClass
+  Excluded DB-only duplicate FK fields:
+  - courseID
+  - roomID
+  - teacherID
+  Because object references already exist:
+  course, room, teacher.
+end note
+
+note bottom of UserAccount
+  relatedID is kept as scalar because current code
+  does not map JPA relation to Person.
+end note
+
+note bottom of Payment
+  classID and studentEmail are kept because class has
+  no direct object relation to EnglishClass/Student.
+end note
+
+@enduml
+
