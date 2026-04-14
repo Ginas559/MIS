@@ -307,7 +307,8 @@ public class TeacherResultController extends HttpServlet {
 
         EnglishClass englishClass = englishClassDAO.findByClassID(classID);
         Long teacherPersonId = resolveTeacherPersonId(actor);
-        if (englishClass == null || teacherPersonId == null || !teacherPersonId.equals(englishClass.getTeacherID())) {
+        if (englishClass == null || teacherPersonId == null || englishClass.getTeacher() == null
+                || !teacherPersonId.equals(englishClass.getTeacher().getId())) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Ban khong co quyen quan ly lop hoc nay");
         }
     }

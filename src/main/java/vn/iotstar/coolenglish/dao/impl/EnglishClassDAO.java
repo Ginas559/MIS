@@ -6,13 +6,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import vn.iotstar.coolenglish.config.JPAUtil;
 import vn.iotstar.coolenglish.entity.EnglishClass;
-import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.enums.ClassStatus;
 import vn.iotstar.coolenglish.enums.TeacherStatus;
 
 public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
-
-    private final TeacherDAO teacherDAO = new TeacherDAO();
 
     @Override
     protected void validateEntity(EnglishClass entity) {
@@ -20,20 +17,15 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
             throw new IllegalArgumentException("Class entity is required.");
         }
 
-        if (entity.getTeacherID() == null) {
-            return;
+        // Kiểm tra lớp học phải có giáo viên (bắt buộc)
+        if (entity.getTeacher() == null) {
+            throw new IllegalStateException("Lớp học thiếu giáo viên phụ trách!");
         }
 
-        Teacher teacher = teacherDAO.findById(entity.getTeacherID(), Teacher.class);
-        if (teacher == null) {
-            throw new IllegalArgumentException("Teacher not found: " + entity.getTeacherID());
+        // Kiểm tra giáo viên không ở trạng thái INACTIVE
+        if (entity.getTeacher().getStatus() == TeacherStatus.INACTIVE) {
+            throw new IllegalStateException("Không thể gán giáo viên đang ngừng hoạt động!");
         }
-
-        if (teacher.getStatus() == TeacherStatus.INACTIVE) {
-            throw new IllegalArgumentException("Cannot assign INACTIVE teacher to class.");
-        }
-
-        entity.assignTeacher(teacher);
     }
 
     public EnglishClass findByClassID(String classID) {
@@ -111,7 +103,8 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
                             + "LEFT JOIN FETCH c.course "
                             + "LEFT JOIN FETCH c.schedule s "
                             + "LEFT JOIN FETCH s.sessions "
-                            + "WHERE c.teacherID = :tid",
+                            + "LEFT JOIN FETCH c.teacher "
+                            + "WHERE c.teacher.id = :tid",
                     EnglishClass.class);
             query.setParameter("tid", teacherId);
             return query.getResultList();
@@ -177,7 +170,8 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
                     "SELECT c FROM EnglishClass c "
                             + "LEFT JOIN FETCH c.course "
                             + "LEFT JOIN FETCH c.room "
-                            + "WHERE c.teacherID = :teacherID "
+                            + "LEFT JOIN FETCH c.teacher "
+                            + "WHERE c.teacher.id = :teacherID "
                             + "ORDER BY c.className",
                     EnglishClass.class);
             query.setParameter("teacherID", teacherID);

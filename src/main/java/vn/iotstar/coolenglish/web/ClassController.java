@@ -9,7 +9,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import vn.iotstar.coolenglish.dao.impl.CourseDAO;
 import vn.iotstar.coolenglish.dao.impl.EnglishClassDAO;
 import vn.iotstar.coolenglish.dao.impl.RoomDAO;
@@ -18,11 +17,8 @@ import vn.iotstar.coolenglish.entity.Course;
 import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Room;
 import vn.iotstar.coolenglish.entity.Teacher;
-import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.ClassStatus;
 import vn.iotstar.coolenglish.facade.EnrollmentFacade;
-import vn.iotstar.coolenglish.factory.SecurityAccessFactory;
-import vn.iotstar.coolenglish.service.IClassService;
 
 @WebServlet(urlPatterns = {
         "/admin/class",
@@ -39,7 +35,6 @@ public class ClassController extends HttpServlet {
     private final CourseDAO courseDAO = new CourseDAO();
     private final RoomDAO roomDAO = new RoomDAO();
     private final TeacherDAO teacherDAO = new TeacherDAO();
-    private final SecurityAccessFactory securityAccessFactory = SecurityAccessFactory.getInstance();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -53,7 +48,6 @@ public class ClassController extends HttpServlet {
 
     private void handleRequest(HttpServletRequest req, HttpServletResponse resp, boolean isPost)
             throws ServletException, IOException {
-        UserAccount currentUser = resolveCurrentUser(req);
         String servletPath = req.getServletPath();
 
         if (servletPath.endsWith("/delete")) {
@@ -63,7 +57,7 @@ public class ClassController extends HttpServlet {
 
         if (servletPath.endsWith("/add")) {
             if (isPost) {
-                saveClass(req, resp, false, currentUser);
+                saveClass(req, resp, false);
             } else {
                 showForm(req, resp, new EnglishClass());
             }
@@ -72,7 +66,7 @@ public class ClassController extends HttpServlet {
 
         if (servletPath.endsWith("/update")) {
             if (isPost) {
-                saveClass(req, resp, true, currentUser);
+                saveClass(req, resp, true);
             } else {
                 showEditForm(req, resp);
             }
@@ -134,10 +128,11 @@ public class ClassController extends HttpServlet {
         showForm(req, resp, clazz);
     }
 
-    private void saveClass(HttpServletRequest req, HttpServletResponse resp, boolean update, UserAccount currentUser)
+    private void saveClass(HttpServletRequest req, HttpServletResponse resp, boolean update)
             throws IOException {
         String courseID = trim(req.getParameter("courseID"));
         String roomID = trim(req.getParameter("roomID"));
+        String teacherIDRaw = trim(req.getParameter("teacherID"));
 
         if (courseID != null && courseDAO.findById(courseID, Course.class) == null) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Course does not exist.");
@@ -149,6 +144,24 @@ public class ClassController extends HttpServlet {
             return;
         }
 
+        if (teacherIDRaw == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Teacher is required.");
+            return;
+        }
+
+        Teacher teacher;
+        try {
+            Long teacherId = Long.valueOf(teacherIDRaw);
+            teacher = teacherDAO.findById(teacherId, Teacher.class);
+            if (teacher == null) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Teacher not found.");
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Teacher ID is invalid.");
+            return;
+        }
+
         EnglishClass clazz = new EnglishClass();
         clazz.setClassID(getClassID(req));
         clazz.setClassName(trim(req.getParameter("className")));
@@ -157,6 +170,7 @@ public class ClassController extends HttpServlet {
         clazz.setMaxCapacity(parseInteger(req.getParameter("maxCapacity")));
         clazz.setCurrentEnrollment(parseInteger(req.getParameter("currentEnrollment")));
         clazz.setStatus(parseStatus(req.getParameter("status")));
+        clazz.setTeacher(teacher);
         clazz.updateInternalState();
 
         if (update) {
@@ -165,22 +179,6 @@ public class ClassController extends HttpServlet {
             englishClassDAO.insert(clazz);
         }
 
-        String teacherIDRaw = trim(req.getParameter("teacherID"));
-        if (teacherIDRaw != null) {
-            try {
-                IClassService classService = securityAccessFactory.getClassService(currentUser);
-                classService.assignTeacher(clazz.getClassID(), Long.valueOf(teacherIDRaw));
-            } catch (NumberFormatException ex) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Teacher ID is invalid.");
-                return;
-            } catch (SecurityException ex) {
-                resp.sendError(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
-                return;
-            } catch (IllegalArgumentException ex) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-                return;
-            }
-        }
 
         redirectToList(req, resp);
     }
@@ -269,15 +267,5 @@ public class ClassController extends HttpServlet {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    private UserAccount resolveCurrentUser(HttpServletRequest req) {
-        HttpSession session = req.getSession(false);
-        if (session != null) {
-            Object currentUser = session.getAttribute("user");
-            if (currentUser instanceof UserAccount user) {
-                return user;
-            }
-        }
-        return null;
-    }
 }
 

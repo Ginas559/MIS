@@ -22,12 +22,13 @@ public class ClassServiceImpl implements IClassService {
             throw new IllegalArgumentException("Class not found: " + classID);
         }
 
-        Teacher teacher = null;
-        if (teacherID != null) {
-            teacher = teacherDAO.findById(teacherID, Teacher.class);
-            if (teacher == null) {
-                throw new IllegalArgumentException("Teacher not found: " + teacherID);
-            }
+        if (teacherID == null) {
+            throw new IllegalArgumentException("Teacher ID is required.");
+        }
+
+        Teacher teacher = teacherDAO.findById(teacherID, Teacher.class);
+        if (teacher == null) {
+            throw new IllegalArgumentException("Teacher not found: " + teacherID);
         }
 
         clazz.assignTeacher(teacher);

@@ -95,8 +95,8 @@
 
             <div>
                 <label class="form-label">Giao vien phu trach</label>
-                <select class="form-select" name="teacherID">
-                    <option value="">-- Chua gan giao vien --</option>
+                <select class="form-select" name="teacherID" required>
+                    <option value="">-- Chon giao vien --</option>
                     <% if (teachers != null) { %>
                         <% for (Teacher teacher : teachers) { %>
                             <option value="<%= teacher.getId() %>"
