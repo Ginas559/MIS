@@ -58,7 +58,8 @@ BEGIN TRY
             @AdminUsername AS username,
             @AdminPassword AS [password],
             CAST('ADMIN' AS NVARCHAR(20)) AS [role],
-            @PersonId AS related_id
+            @PersonId AS related_id,
+            CAST(1 AS BIT) AS is_active
     ) AS source
     ON target.email = source.email
     WHEN MATCHED THEN
@@ -66,10 +67,11 @@ BEGIN TRY
             target.username = source.username,
             target.[password] = source.[password],
             target.[role] = source.[role],
-            target.related_id = source.related_id
+            target.related_id = source.related_id,
+            target.is_active = source.is_active
     WHEN NOT MATCHED THEN
-        INSERT (email, username, [password], [role], related_id)
-        VALUES (source.email, source.username, source.[password], source.[role], source.related_id);
+        INSERT (email, username, [password], [role], related_id, is_active)
+        VALUES (source.email, source.username, source.[password], source.[role], source.related_id, source.is_active);
 
     COMMIT TRANSACTION;
 
@@ -79,6 +81,7 @@ BEGIN TRY
         ua.username,
         ua.[role],
         ua.related_id,
+        ua.is_active,
         p.full_name,
         p.person_type
     FROM dbo.user_account ua

@@ -15,6 +15,10 @@ IF COL_LENGTH('dbo.Courses', 'image') IS NULL
 IF COL_LENGTH('dbo.AcademicContents', 'image_link') IS NULL
 	ALTER TABLE [dbo].[AcademicContents] ADD [image_link] NVARCHAR(500) NULL;
 
+-- Thêm field is_active vào bảng user_account
+IF COL_LENGTH('dbo.user_account', 'is_active') IS NULL
+	ALTER TABLE [dbo].[user_account] ADD [is_active] BIT NOT NULL CONSTRAINT DF_user_account_is_active DEFAULT (1) WITH VALUES;
+
 -- Chuyển các cột text liên quan roadmap sang NVARCHAR để giữ nguyên dấu tiếng Việt
 IF COL_LENGTH('dbo.Roadmaps', 'title') IS NOT NULL
 	ALTER TABLE [dbo].[Roadmaps] ALTER COLUMN [title] NVARCHAR(255) NOT NULL;

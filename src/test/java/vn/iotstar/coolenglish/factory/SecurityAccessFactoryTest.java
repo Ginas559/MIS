@@ -16,9 +16,12 @@ import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
 import vn.iotstar.coolenglish.service.IClassService;
 import vn.iotstar.coolenglish.service.ICourseService;
+import vn.iotstar.coolenglish.service.IUserService;
 import vn.iotstar.coolenglish.service.impl.CourseServiceImpl;
+import vn.iotstar.coolenglish.service.impl.UserServiceImpl;
 import vn.iotstar.coolenglish.service.proxy.ClassServiceProxy;
 import vn.iotstar.coolenglish.service.proxy.CourseServiceProxy;
+import vn.iotstar.coolenglish.service.proxy.UserServiceProxy;
 
 class SecurityAccessFactoryTest {
 
@@ -47,6 +50,22 @@ class SecurityAccessFactoryTest {
     }
 
     @Test
+    void factoryShouldReturnRealUserServiceForAdmin() {
+        IUserService service = SecurityAccessFactory.getInstance()
+                .getUserService(new UserAccount("admin@test.com", "admin", "admin123", UserRole.ADMIN));
+
+        assertInstanceOf(UserServiceImpl.class, service);
+    }
+
+    @Test
+    void factoryShouldReturnUserProxyForNonAdmin() {
+        IUserService service = SecurityAccessFactory.getInstance()
+                .getUserService(new UserAccount("teacher@test.com", "teacher", "teacher123", UserRole.TEACHER));
+
+        assertInstanceOf(UserServiceProxy.class, service);
+    }
+
+    @Test
     void factoryShouldBeSingleton() {
         assertSame(SecurityAccessFactory.getInstance(), SecurityAccessFactory.getInstance());
     }
@@ -54,7 +73,8 @@ class SecurityAccessFactoryTest {
     @Test
     void proxyShouldBlockFeeUpdateForNonAdmin() {
         StubCourseService stub = new StubCourseService();
-        CourseServiceProxy proxy = new CourseServiceProxy(stub, new UserAccount("student@test.com", "student", "student123", UserRole.STUDENT));
+        CourseServiceProxy proxy = new CourseServiceProxy(stub,
+                new UserAccount("student@test.com", "student", "student123", UserRole.STUDENT));
 
         assertThrows(SecurityException.class, () -> proxy.updateCourseFee("C01", 199.0));
         assertFalse(stub.updated);
@@ -63,7 +83,8 @@ class SecurityAccessFactoryTest {
     @Test
     void proxyShouldAllowListingCourses() {
         StubCourseService stub = new StubCourseService();
-        CourseServiceProxy proxy = new CourseServiceProxy(stub, new UserAccount("staff@test.com", "staff", "staff123", UserRole.STAFF));
+        CourseServiceProxy proxy = new CourseServiceProxy(stub,
+                new UserAccount("staff@test.com", "staff", "staff123", UserRole.STAFF));
 
         assertEquals(stub.findAll(), proxy.findAll());
     }
@@ -71,7 +92,8 @@ class SecurityAccessFactoryTest {
     @Test
     void classProxyShouldAllowAssignTeacherForStaff() {
         StubClassService stub = new StubClassService();
-        ClassServiceProxy proxy = new ClassServiceProxy(stub, new UserAccount("staff@test.com", "staff", "staff123", UserRole.STAFF));
+        ClassServiceProxy proxy = new ClassServiceProxy(stub,
+                new UserAccount("staff@test.com", "staff", "staff123", UserRole.STAFF));
 
         proxy.assignTeacher("CLS01", 1L);
 
@@ -81,10 +103,29 @@ class SecurityAccessFactoryTest {
     @Test
     void classProxyShouldBlockAssignTeacherForStudent() {
         StubClassService stub = new StubClassService();
-        ClassServiceProxy proxy = new ClassServiceProxy(stub, new UserAccount("student@test.com", "student", "student123", UserRole.STUDENT));
+        ClassServiceProxy proxy = new ClassServiceProxy(stub,
+                new UserAccount("student@test.com", "student", "student123", UserRole.STUDENT));
 
         assertThrows(SecurityException.class, () -> proxy.assignTeacher("CLS01", 1L));
         assertFalse(stub.assigned);
+    }
+
+    @Test
+    void userProxyShouldBlockUserListForStaff() {
+        StubUserService stub = new StubUserService();
+        UserServiceProxy proxy = new UserServiceProxy(stub,
+                new UserAccount("staff@test.com", "staff", "staff123", UserRole.STAFF));
+
+        assertThrows(SecurityException.class, proxy::getAllUsers);
+    }
+
+    @Test
+    void userProxyShouldAllowUserListForAdmin() {
+        StubUserService stub = new StubUserService();
+        UserServiceProxy proxy = new UserServiceProxy(stub,
+                new UserAccount("admin@test.com", "admin", "admin123", UserRole.ADMIN));
+
+        assertEquals(stub.getAllUsers(), proxy.getAllUsers());
     }
 
     private static final class StubCourseService implements ICourseService {
@@ -111,6 +152,28 @@ class SecurityAccessFactoryTest {
         @Override
         public void assignTeacher(String classID, Long teacherID) {
             assigned = true;
+        }
+    }
+
+    private static final class StubUserService implements IUserService {
+
+        private final List<UserAccount> users = List.of(
+                new UserAccount("admin@test.com", "admin", "admin123", UserRole.ADMIN));
+
+        @Override
+        public List<UserAccount> getAllUsers() {
+            return users;
+        }
+
+        @Override
+        public UserAccount getUserById(Long userID) {
+            return users.stream().filter(user -> user.getUserID() != null && user.getUserID().equals(userID))
+                    .findFirst().orElse(users.getFirst());
+        }
+
+        @Override
+        public void toggleUserActive(Long userID) {
+            // no-op for proxy tests
         }
     }
 }
