@@ -24,6 +24,9 @@
                 <p><strong>Mo ta:</strong> <%= course.getDescription() %></p>
                 <% if (classroom != null) { %>
                     <p><strong>Lop:</strong> <%= classroom.getClassName() %> - <%= classroom.getClassID() %></p>
+                    <p><strong>Giao vien:</strong> <%= classroom.getTeacherName() == null ? "--" : classroom.getTeacherName() %></p>
+                    <p><strong>Ngay bat dau:</strong> <%= classroom.getStartDate() == null ? "--" : classroom.getStartDate() %></p>
+                    <p><strong>Ngay ket thuc:</strong> <%= classroom.getEndDate() == null ? "--" : classroom.getEndDate() %></p>
                     <p><strong>Si so:</strong> <%= classroom.getCurrentEnrollment() %>/<%= classroom.getMaxCapacity() %></p>
                 <% } else { %>
                     <div class="alert alert-warning mb-0">Hien chua co lop OPEN cho khoa hoc nay.</div>

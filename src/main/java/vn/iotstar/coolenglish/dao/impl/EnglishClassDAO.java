@@ -17,6 +17,31 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
             throw new IllegalArgumentException("Class entity is required.");
         }
 
+        if (entity.getClassName() == null || entity.getClassName().isBlank()) {
+            throw new IllegalStateException("Tên lớp học không được để trống!");
+        }
+
+        if (entity.getCurrentEnrollment() != null && entity.getCurrentEnrollment() < 0) {
+            throw new IllegalStateException("Số học viên hiện tại không hợp lệ!");
+        }
+
+        if (entity.getStartDate() == null) {
+            throw new IllegalStateException("Ngày bắt đầu là bắt buộc!");
+        }
+
+        if (entity.getEndDate() == null) {
+            throw new IllegalStateException("Ngày kết thúc là bắt buộc!");
+        }
+
+        if (entity.getMaxStudent() == null || entity.getMaxStudent() <= 0) {
+            throw new IllegalStateException("Sức chứa tối đa phải lớn hơn 0!");
+        }
+
+        if (entity.getStartDate() != null && entity.getEndDate() != null
+                && entity.getEndDate().isBefore(entity.getStartDate())) {
+            throw new IllegalStateException("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu!");
+        }
+
         // Kiểm tra lớp học phải có giáo viên (bắt buộc)
         if (entity.getTeacher() == null) {
             throw new IllegalStateException("Lớp học thiếu giáo viên phụ trách!");
@@ -29,17 +54,13 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
     }
 
     public EnglishClass findByClassID(String classID) {
-        return findById(classID, EnglishClass.class);
-    }
-
-    public EnglishClass findByClassIdWithSchedule(String classID) {
         if (classID == null || classID.isBlank()) {
             return null;
         }
         EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<EnglishClass> query = em.createQuery(
-                    "SELECT DISTINCT c FROM EnglishClass c LEFT JOIN FETCH c.schedule WHERE c.classID = :classID",
+                    "SELECT DISTINCT c FROM EnglishClass c LEFT JOIN FETCH c.teacher WHERE c.classID = :classID",
                     EnglishClass.class);
             query.setParameter("classID", classID);
             List<EnglishClass> results = query.getResultList();
@@ -49,15 +70,71 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
         }
     }
 
-    /** Lớp + khóa + phòng + lịch (dùng khi hóa đơn chưa gắn enrollment). */
+    public List<EnglishClass> findAllWithDetails() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<EnglishClass> query = em.createQuery(
+                    "SELECT DISTINCT c FROM EnglishClass c "
+                            + "LEFT JOIN FETCH c.teacher "
+                            + "LEFT JOIN FETCH c.course "
+                            + "ORDER BY c.classID",
+                    EnglishClass.class);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public EnglishClass findByClassIDWithDetails(String classID) {
+        if (classID == null || classID.isBlank()) {
+            return null;
+        }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<EnglishClass> query = em.createQuery(
+                    "SELECT DISTINCT c FROM EnglishClass c "
+                            + "LEFT JOIN FETCH c.teacher "
+                            + "LEFT JOIN FETCH c.course "
+                            + "LEFT JOIN FETCH c.schedule "
+                            + "WHERE c.classID = :classID",
+                    EnglishClass.class);
+            query.setParameter("classID", classID);
+            List<EnglishClass> results = query.getResultList();
+            return results.isEmpty() ? null : results.get(0);
+        } finally {
+            em.close();
+        }
+    }
+
+    public EnglishClass findByClassIdWithSchedule(String classID) {
+        if (classID == null || classID.isBlank()) {
+            return null;
+        }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<EnglishClass> query = em.createQuery(
+                    "SELECT DISTINCT c FROM EnglishClass c "
+                            + "LEFT JOIN FETCH c.teacher "
+                            + "LEFT JOIN FETCH c.schedule WHERE c.classID = :classID",
+                    EnglishClass.class);
+            query.setParameter("classID", classID);
+            List<EnglishClass> results = query.getResultList();
+            return results.isEmpty() ? null : results.get(0);
+        } finally {
+            em.close();
+        }
+    }
+
+    /** Lớp + khóa + lịch + buổi học (dùng khi hóa đơn chưa gắn enrollment). */
     public EnglishClass findByClassIdWithInvoiceRelations(String classID) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<EnglishClass> query = em.createQuery(
                     "SELECT DISTINCT c FROM EnglishClass c "
                             + "LEFT JOIN FETCH c.course "
-                            + "LEFT JOIN FETCH c.room "
-                            + "LEFT JOIN FETCH c.schedule "
+                            + "LEFT JOIN FETCH c.schedule sch "
+                            + "LEFT JOIN FETCH sch.sessions sess "
+                            + "LEFT JOIN FETCH sess.room "
                             + "LEFT JOIN FETCH c.teacher "
                             + "WHERE c.classID = :classID",
                     EnglishClass.class);
@@ -151,7 +228,8 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<EnglishClass> query = em.createQuery(
-                    "SELECT c FROM EnglishClass c WHERE c.courseID = :courseID AND c.status = :status ORDER BY c.classID",
+                    "SELECT DISTINCT c FROM EnglishClass c LEFT JOIN FETCH c.teacher "
+                            + "WHERE c.courseID = :courseID AND c.status = :status ORDER BY c.classID",
                     EnglishClass.class);
             query.setParameter("courseID", courseID);
             query.setParameter("status", ClassStatus.OPEN);
@@ -169,7 +247,6 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
             TypedQuery<EnglishClass> query = em.createQuery(
                     "SELECT c FROM EnglishClass c "
                             + "LEFT JOIN FETCH c.course "
-                            + "LEFT JOIN FETCH c.room "
                             + "LEFT JOIN FETCH c.teacher "
                             + "WHERE c.teacher.id = :teacherID "
                             + "ORDER BY c.className",

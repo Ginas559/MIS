@@ -94,7 +94,7 @@ public class TeacherResultController extends HttpServlet {
         boolean teacherView = actor.getRole() == UserRole.TEACHER;
         List<EnglishClass> classes = teacherView
                 ? findTeacherClasses(actor)
-                : englishClassDAO.findAll(EnglishClass.class);
+                : englishClassDAO.findAllWithDetails();
 
         req.setAttribute("classes", classes);
         req.setAttribute("message", resolveMessage(req.getParameter("msg")));

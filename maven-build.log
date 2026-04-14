@@ -1,0 +1,19 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< vn.iotstar:MISEnglish >------------------------
+[INFO] Building BuiThanhTung 1.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ war ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ MISEnglish ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ MISEnglish ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 156 source files with javac [debug release 21] to target\classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  5.158 s
+[INFO] Finished at: 2026-04-14T19:39:24+07:00
+[INFO] ------------------------------------------------------------------------

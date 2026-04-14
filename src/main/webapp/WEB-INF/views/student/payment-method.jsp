@@ -20,6 +20,9 @@
     <% } %>
     <% if (course != null && classroom != null) { %>
         <p><strong>Khoa hoc:</strong> <%= course.getCourseName() %> - <%= classroom.getClassName() %></p>
+        <p><strong>Giao vien:</strong> <%= classroom.getTeacherName() == null ? "--" : classroom.getTeacherName() %></p>
+        <p><strong>Ngay bat dau:</strong> <%= classroom.getStartDate() == null ? "--" : classroom.getStartDate() %></p>
+        <p><strong>Ngay ket thuc:</strong> <%= classroom.getEndDate() == null ? "--" : classroom.getEndDate() %></p>
         <p><strong>Hoc phi:</strong> <%= course.getFee() %></p>
         <form method="post" action="${pageContext.request.contextPath}/student/payment/start">
             <input type="hidden" name="courseID" value="<%= course.getCourseID() %>">

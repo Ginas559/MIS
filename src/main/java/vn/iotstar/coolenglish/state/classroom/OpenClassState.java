@@ -12,17 +12,14 @@ public class OpenClassState implements ClassState {
             throw new IllegalArgumentException("Student is required for enrollment.");
         }
 
-        Integer maxCapacity = clazz.getMaxCapacity();
-        Integer currentEnrollment = clazz.getCurrentEnrollment();
-        int current = currentEnrollment == null ? 0 : currentEnrollment;
-
-        if (maxCapacity != null && maxCapacity > 0 && current >= maxCapacity) {
+        if (!clazz.checkCapacity()) {
             clazz.setStatus(ClassStatus.RUNNING);
             throw new IllegalStateException("Class reached max capacity and moved to RUNNING.");
         }
 
         clazz.increaseEnrollmentCount();
 
+        Integer maxCapacity = clazz.getMaxCapacity();
         int updated = clazz.getCurrentEnrollment() == null ? 0 : clazz.getCurrentEnrollment();
         if (maxCapacity != null && maxCapacity > 0 && updated >= maxCapacity) {
             clazz.setStatus(ClassStatus.RUNNING);

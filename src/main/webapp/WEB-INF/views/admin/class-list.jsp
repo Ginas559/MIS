@@ -48,8 +48,9 @@
                 <tr>
                     <th>ID</th>
                     <th>Ten lop</th>
+                    <th>Ngay bat dau</th>
+                    <th>Ngay ket thuc</th>
                     <th>CourseID</th>
-                    <th>RoomID</th>
                     <th>Teacher</th>
                     <th>Hoc vien</th>
                     <th>Trang thai</th>
@@ -65,9 +66,10 @@
                 <tr>
                     <td><%= clazz.getClassID() %></td>
                     <td><%= clazz.getClassName() %></td>
+                    <td><%= clazz.getStartDate() == null ? "--" : clazz.getStartDate() %></td>
+                    <td><%= clazz.getEndDate() == null ? "--" : clazz.getEndDate() %></td>
                     <td><%= clazz.getCourseID() == null ? "" : clazz.getCourseID() %></td>
-                    <td><%= clazz.getRoomID() == null ? "" : clazz.getRoomID() %></td>
-                    <td><%= clazz.getTeacherID() == null ? "--" : clazz.getTeacherID() %></td>
+                    <td><%= clazz.getTeacherName() == null ? "--" : clazz.getTeacherName() %></td>
                     <td><%= clazz.getCurrentEnrollment() == null ? 0 : clazz.getCurrentEnrollment() %> / <%= clazz.getMaxCapacity() == null ? "-" : clazz.getMaxCapacity() %></td>
                     <td><span class="status-pill"><%= clazz.getStatus() %></span></td>
                     <td>
@@ -89,7 +91,7 @@
                     } else {
                 %>
                 <tr>
-                    <td colspan="9" class="text-center app-subtle">Chua co du lieu lop hoc.</td>
+                    <td colspan="10" class="text-center app-subtle">Chua co du lieu lop hoc.</td>
                 </tr>
                 <%
                     }

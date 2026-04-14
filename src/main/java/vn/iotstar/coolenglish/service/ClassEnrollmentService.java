@@ -49,6 +49,11 @@ public class ClassEnrollmentService {
         }
 
         clazz.updateInternalState();
+
+        if (!clazz.checkCapacity()) {
+            throw new IllegalStateException("Class is full.");
+        }
+
         clazz.register(student);
 
         // Persist status transition / enrollment count after state transition logic.

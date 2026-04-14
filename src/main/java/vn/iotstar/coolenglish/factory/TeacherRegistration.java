@@ -1,5 +1,7 @@
 package vn.iotstar.coolenglish.factory;
 
+import java.time.LocalDate;
+
 import vn.iotstar.coolenglish.entity.Person;
 import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.enums.TeacherStatus;
@@ -16,6 +18,7 @@ public class TeacherRegistration extends UserRegistration {
         Teacher teacher = (Teacher) person;
         teacher.setTeacherID("TCH-" + System.currentTimeMillis());
         teacher.setStatus(TeacherStatus.ACTIVE);
+        teacher.setHireDate(LocalDate.now());
     }
 }
 

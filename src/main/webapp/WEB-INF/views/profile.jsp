@@ -1,6 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Person" %>
 <%@ page import="vn.iotstar.coolenglish.entity.UserAccount" %>
+<%@ page import="vn.iotstar.coolenglish.entity.Student" %>
+<%@ page import="vn.iotstar.coolenglish.entity.Teacher" %>
+<%@ page import="vn.iotstar.coolenglish.entity.Staff" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -67,6 +70,17 @@
         .form-input:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
         .form-input[readonly] { background: #f8f9fa; color: #b2bec3; cursor: not-allowed; }
 
+        .role-box {
+            border: 1px solid #e8ecf1;
+            background: #f9fbff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+        .role-box h3 { margin: 0 0 10px 0; font-size: 16px; }
+        .role-box p { margin: 6px 0; font-size: 14px; }
+
         /* Nút bấm */
         .btn-group { display: flex; gap: 15px; margin-top: 30px; }
         .btn-save {
@@ -98,6 +112,27 @@
     String emailValue = (user != null) ? user.getEmail() : "";
     String genderValue = (person != null && person.getGender() != null) ? person.getGender().name() : "";
     String avatarValue = (person != null && person.getAvatar() != null) ? person.getAvatar() : "";
+
+    boolean isStudent = person instanceof Student;
+    boolean isTeacher = person instanceof Teacher;
+    boolean isStaff = person instanceof Staff;
+
+    Student student = isStudent ? (Student) person : null;
+    Teacher teacher = isTeacher ? (Teacher) person : null;
+    Staff staff = isStaff ? (Staff) person : null;
+
+    String studentIdValue = student != null && student.getStudentID() != null ? student.getStudentID() : "Chua cap nhat";
+    String studentStatusValue = student != null && student.getStatus() != null ? student.getStatus().name() : "Chua cap nhat";
+    String studentDobValue = student != null && student.getDateOfBirth() != null ? student.getDateOfBirth().toString() : "";
+    String studentRegistrationDateValue = student != null && student.getRegistrationDate() != null ? student.getRegistrationDate().toString() : "Chua cap nhat";
+
+    String teacherIdValue = teacher != null && teacher.getTeacherID() != null ? teacher.getTeacherID() : "Chua cap nhat";
+    String teacherSpecialtyValue = teacher != null && teacher.getSpecialty() != null ? teacher.getSpecialty() : "";
+    String teacherCertificateValue = teacher != null && teacher.getCertificate() != null ? teacher.getCertificate() : "";
+    String teacherStatusValue = teacher != null && teacher.getStatus() != null ? teacher.getStatus().name() : "Chua cap nhat";
+    String teacherHireDateValue = teacher != null && teacher.getHireDate() != null ? teacher.getHireDate().toString() : "Chua cap nhat";
+
+    String staffIdValue = staff != null && staff.getStaffID() != null ? staff.getStaffID() : "Chua cap nhat";
 %>
 
 <div class="container">
@@ -147,6 +182,70 @@
                         <option value="OTHER" <%= "OTHER".equals(genderValue) ? "selected" : "" %>>Khác</option>
                     </select>
                 </div>
+
+                <% if (isStudent) { %>
+                    <div class="role-box">
+                        <h3>Thông tin học viên</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Mã học viên</label>
+                            <input type="text" class="form-input" value="<%= studentIdValue %>" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Trạng thái</label>
+                            <input type="text" class="form-input" value="<%= studentStatusValue %>" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" name="dateOfBirth" class="form-input" value="<%= studentDobValue %>">
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <label class="form-label">Ngày đăng ký</label>
+                            <input type="text" class="form-input" value="<%= studentRegistrationDateValue %>" readonly>
+                        </div>
+                    </div>
+                <% } else if (isTeacher) { %>
+                    <div class="role-box">
+                        <h3>Thông tin giáo viên</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Mã giáo viên</label>
+                            <input type="text" class="form-input" value="<%= teacherIdValue %>" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Chuyên môn</label>
+                            <input type="text" name="specialty" class="form-input" value="<%= teacherSpecialtyValue %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Chứng chỉ</label>
+                            <input type="text" name="certificate" class="form-input" value="<%= teacherCertificateValue %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Trạng thái</label>
+                            <input type="text" class="form-input" value="<%= teacherStatusValue %>" readonly>
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <label class="form-label">Ngày vào làm (ngày đăng ký tài khoản)</label>
+                            <input type="text" class="form-input" value="<%= teacherHireDateValue %>" readonly>
+                        </div>
+                    </div>
+                <% } else if (isStaff) { %>
+                    <div class="role-box">
+                        <h3>Thông tin nhân viên</h3>
+
+                        <div class="form-group mb-0">
+                            <label class="form-label">Mã nhân viên</label>
+                            <input type="text" class="form-input" value="<%= staffIdValue %>" readonly>
+                        </div>
+                    </div>
+                <% } %>
 
                 <div class="btn-group">
                     <button type="submit" class="btn-save">Lưu thay đổi</button>

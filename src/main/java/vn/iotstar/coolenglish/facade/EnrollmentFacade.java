@@ -84,9 +84,7 @@ public class EnrollmentFacade {
             }
             clazz.updateInternalState();
 
-            int currentEnrollment = clazz.getCurrentEnrollment() == null ? 0 : clazz.getCurrentEnrollment();
-            int maxCapacity = clazz.getMaxCapacity() == null ? Integer.MAX_VALUE : clazz.getMaxCapacity();
-            if (currentEnrollment >= maxCapacity) {
+            if (!clazz.checkCapacity()) {
                 throw new IllegalStateException("Lớp học đã đầy. Không thể ghi danh.");
             }
 
