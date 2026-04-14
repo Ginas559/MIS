@@ -23,7 +23,11 @@ import vn.iotstar.coolenglish.entity.Student;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
 
-@WebServlet("/student/dashboard")
+@WebServlet(urlPatterns = {
+        "/student/dashboard",
+        "/student/schedule",
+        "/student/results"
+})
 public class StudentDashboardController extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -60,8 +64,21 @@ public class StudentDashboardController extends HttpServlet {
         req.setAttribute("totalClasses", enrollments.size());
         req.setAttribute("gradedTests", countRecordedScores(examResults));
 
-        RequestDispatcher dispatcher = req.getRequestDispatcher("/WEB-INF/views/student/dashboard.jsp");
+        RequestDispatcher dispatcher = req.getRequestDispatcher(resolveView(req.getServletPath()));
         dispatcher.forward(req, resp);
+    }
+
+    private String resolveView(String servletPath) {
+        if (servletPath == null || servletPath.isBlank() || servletPath.endsWith("/dashboard")) {
+            return "/WEB-INF/views/student/dashboard.jsp";
+        }
+        if (servletPath.endsWith("/schedule")) {
+            return "/WEB-INF/views/student/schedule.jsp";
+        }
+        if (servletPath.endsWith("/results")) {
+            return "/WEB-INF/views/student/results.jsp";
+        }
+        return "/WEB-INF/views/student/dashboard.jsp";
     }
 
     private UserAccount resolveStudent(HttpServletRequest req, HttpServletResponse resp) throws IOException {

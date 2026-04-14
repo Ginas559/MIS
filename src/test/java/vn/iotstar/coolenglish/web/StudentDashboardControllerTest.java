@@ -79,4 +79,43 @@ class StudentDashboardControllerTest {
 
         assertEquals("/app/login?msg=require_login", response.getRedirectedUrl());
     }
+
+    @Test
+    void shouldForwardStudentScheduleView() throws Exception {
+        EnrollmentDAO enrollmentDAO = new EnrollmentDAO() {
+            @Override
+            public List<Enrollment> findByStudentEmailWithDetails(String studentEmail) {
+                return List.of();
+            }
+        };
+        ExamResultDAO examResultDAO = new ExamResultDAO() {
+            @Override
+            public List<ExamResult> findByStudentEmail(String studentEmail) {
+                return List.of();
+            }
+        };
+        PersonDAO personDAO = new PersonDAO() {
+            @Override
+            public Student findByEmail(String email) {
+                Student student = new Student();
+                student.setFullName("Test Student");
+                student.setEmail(email);
+                return student;
+            }
+        };
+
+        StudentDashboardController controller = new StudentDashboardController(enrollmentDAO, examResultDAO, personDAO);
+
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/student/schedule");
+        request.setServletPath("/student/schedule");
+        request.setContextPath("/app");
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("user", new UserAccount("student@coolenglish.vn", "student", "x", UserRole.STUDENT));
+        request.setSession(session);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        controller.doGet(request, response);
+
+        assertEquals("/WEB-INF/views/student/schedule.jsp", response.getForwardedUrl());
+    }
 }
