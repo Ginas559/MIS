@@ -41,9 +41,6 @@ public class Schedule implements Serializable {
     @Column(name = "createDate")
     private Date createDate;
 
-    /**
-     * Lịch 1-1 với lớp: khóa ngoại {@code classID} nằm trên bảng Schedules.
-     */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classID", referencedColumnName = "classID", unique = true)
     private EnglishClass englishClass;

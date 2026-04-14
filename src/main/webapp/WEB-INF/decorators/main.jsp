@@ -49,6 +49,7 @@
                     <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/student/results">Ket qua hoc tap</a>
                     <% } %>
                     <% if (currentUser != null && currentUser.getRole() == UserRole.TEACHER) { %>
+                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/teacher/classes">Lich day</a>
                     <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/teacher/results">Bang diem</a>
                     <% } %>
                     <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/profile">Ho so ca nhan</a>

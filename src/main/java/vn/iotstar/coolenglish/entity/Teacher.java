@@ -69,6 +69,12 @@ public class Teacher extends Person {
         this.certificate = certificate;
     }
 
+    public void assignClass(EnglishClass englishClass) {
+        if (englishClass != null) {
+            englishClass.assignTeacher(this);
+        }
+    }
+
     @Override
     public void showSpecificInfo() {
         System.out.println("Role: Teacher - ID: " + teacherID);
