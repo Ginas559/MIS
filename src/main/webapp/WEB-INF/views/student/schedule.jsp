@@ -50,7 +50,7 @@
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/student/results">Ket qua hoc tap</a>
             <% } %>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/profile">Ho so ca nhan</a>
-            <form method="post" action="${pageContext.request.contextPath}/logout">
+<form method="post" action="${pageContext.request.contextPath}/logout">
                 <button type="submit" class="btn btn-outline-dark">Dang xuat</button>
             </form>
         </div>
@@ -123,7 +123,7 @@
                         <th>Trang thai</th>
                     </tr>
                 </thead>
-                <tbody>
+<tbody>
                     <% if (enrollments != null && !enrollments.isEmpty()) {
                         for (Enrollment enrollment : enrollments) {
                             EnglishClass englishClass = enrollment.getEnglishClass();
@@ -162,7 +162,7 @@
                                         <%= sessionItem.getEndTime() == null ? "--" : sessionItem.getEndTime() %>
                                     </div>
                                 </div>
-                                <% } %>
+<% } %>
                             <% } else { %>
                             <span class="text-muted">Lop nay chua co lich hoc chi tiet.</span>
                             <% } %>

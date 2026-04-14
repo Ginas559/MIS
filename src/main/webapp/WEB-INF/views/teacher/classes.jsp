@@ -33,6 +33,7 @@
                             <th>Mã lớp</th>
                             <th>Tên lớp</th>
                             <th>Khóa học</th>
+                            <th>Lịch dạy</th>
                             <th>Trạng thái</th>
                             <th>Hành động</th>
                         </tr>
@@ -43,6 +44,24 @@
                                 <td>${clazz.classID}</td>
                                 <td>${clazz.className}</td>
                                 <td>${clazz.course != null ? clazz.course.courseName : '—'}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${not empty clazz.schedule and not empty clazz.schedule.sessions}">
+                                            <ul class="mb-0 ps-3">
+                                                <c:forEach var="sess" items="${clazz.schedule.sessions}">
+                                                    <li>
+                                                        <strong>${sess.sessionDate}</strong>
+                                                        <c:if test="${not empty sess.startTime}"> ${sess.startTime} - ${sess.endTime}</c:if>
+                                                        <c:if test="${not empty sess.room}"> | ${sess.room.roomName}</c:if>
+                                                    </li>
+                                                </c:forEach>
+                                            </ul>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="text-muted">Chưa có lịch</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
                                 <td>${clazz.status}</td>
                                 <td>
                                     <a href="${pageContext.request.contextPath}/teacher/attendance?classId=${clazz.classID}" class="btn btn-primary me-2">Điểm danh</a>

@@ -2,7 +2,6 @@
 <%@ page import="java.util.List" %>
 <%@ page import="vn.iotstar.coolenglish.entity.EnglishClass" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Room" %>
-<%@ page import="vn.iotstar.coolenglish.entity.Teacher" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Schedule" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Session" %>
 <%@ page import="vn.iotstar.coolenglish.entity.UserAccount" %>
@@ -229,18 +228,6 @@
                     <% } %>
                 </select>
             </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Giao vien <span class="required">*</span></label>
-                <select class="form-select" name="teacherID[]">
-                    <option value="">-- Chon giao vien --</option>
-                    <% List<Teacher> teachers = (List<Teacher>) request.getAttribute("teachers"); %>
-                    <% if (teachers != null) { %>
-                    <% for (Teacher teacher : teachers) { %>
-                    <option value="<%= teacher.getId() %>"><%= teacher.getFullName() %></option>
-                    <% } %>
-                    <% } %>
-                </select>
-            </div>
         </div>
     </div>
 </div>
@@ -284,9 +271,6 @@
             if (sessionData.roomID) {
                 clone.querySelector('select[name="roomID[]"]').value = sessionData.roomID;
             }
-            if (sessionData.teacherID) {
-                clone.querySelector('select[name="teacherID[]"]').value = sessionData.teacherID;
-            }
         }
 
         container.appendChild(clone);
@@ -320,7 +304,6 @@
                 startTime: '<%= s.getStartTime() != null ? s.getStartTime() : "" %>',
                 endTime: '<%= s.getEndTime() != null ? s.getEndTime() : "" %>',
                 roomID: '<%= s.getRoom() != null ? s.getRoom().getRoomID() : "" %>',
-                teacherID: '<%= s.getTeacher() != null ? s.getTeacher().getId() : "" %>'
             });
             <% } %>
         <% } else { %>

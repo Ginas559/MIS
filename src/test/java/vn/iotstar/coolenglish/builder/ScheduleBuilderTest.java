@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Room;
 import vn.iotstar.coolenglish.entity.Schedule;
 import vn.iotstar.coolenglish.entity.Session;
@@ -443,6 +444,109 @@ class ScheduleBuilderTest {
 
         Schedule schedule = builder.build();
         assertEquals(1, schedule.getTotalSessions());
+    }
+
+    @Test
+    @DisplayName("Should throw when session date is before class start date")
+    void testBuildThrowsWhenSessionBeforeClassStart() {
+        ScheduleBuilder.ScheduleConflictChecker noConflictChecker = (session, scheduleID) -> false;
+
+        // Create a class with start/end dates
+        EnglishClass testClass = new EnglishClass();
+        testClass.setClassID("CLS-TEST");
+        testClass.setClassName("Test Class");
+        testClass.setStartDate(java.time.LocalDate.of(2026, 4, 15)); // April 15, 2026
+        testClass.setEndDate(java.time.LocalDate.of(2026, 4, 30));   // April 30, 2026
+
+        // Create session with date before class start
+        Session earlySession = new Session();
+        earlySession.setSessionID("SESS-EARLY");
+        earlySession.setSessionDate(java.sql.Date.valueOf("2026-04-10")); // April 10, 2026 - before start
+        earlySession.setStartTime(LocalTime.of(8, 0));
+        earlySession.setEndTime(LocalTime.of(9, 30));
+        earlySession.setRoom(room1);
+        earlySession.setTeacher(teacher1);
+
+        builder
+                .withCreateDate(createDate)
+                .addSession(earlySession)
+                .withEnglishClass(testClass)
+                .withConflictChecker(noConflictChecker);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.build()
+        );
+
+        assertTrue(exception.getMessage().contains("diễn ra trước ngày bắt đầu lớp"));
+    }
+
+    @Test
+    @DisplayName("Should throw when session date is after class end date")
+    void testBuildThrowsWhenSessionAfterClassEnd() {
+        ScheduleBuilder.ScheduleConflictChecker noConflictChecker = (session, scheduleID) -> false;
+
+        // Create a class with start/end dates
+        EnglishClass testClass = new EnglishClass();
+        testClass.setClassID("CLS-TEST");
+        testClass.setClassName("Test Class");
+        testClass.setStartDate(java.time.LocalDate.of(2026, 4, 15)); // April 15, 2026
+        testClass.setEndDate(java.time.LocalDate.of(2026, 4, 30));   // April 30, 2026
+
+        // Create session with date after class end
+        Session lateSession = new Session();
+        lateSession.setSessionID("SESS-LATE");
+        lateSession.setSessionDate(java.sql.Date.valueOf("2026-05-05")); // May 5, 2026 - after end
+        lateSession.setStartTime(LocalTime.of(8, 0));
+        lateSession.setEndTime(LocalTime.of(9, 30));
+        lateSession.setRoom(room1);
+        lateSession.setTeacher(teacher1);
+
+        builder
+                .withCreateDate(createDate)
+                .addSession(lateSession)
+                .withEnglishClass(testClass)
+                .withConflictChecker(noConflictChecker);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.build()
+        );
+
+        assertTrue(exception.getMessage().contains("diễn ra sau ngày kết thúc lớp"));
+    }
+
+    @Test
+    @DisplayName("Should allow sessions within class period")
+    void testBuildAllowsSessionsWithinClassPeriod() {
+        ScheduleBuilder.ScheduleConflictChecker noConflictChecker = (session, scheduleID) -> false;
+
+        // Create a class with start/end dates
+        EnglishClass testClass = new EnglishClass();
+        testClass.setClassID("CLS-TEST");
+        testClass.setClassName("Test Class");
+        testClass.setStartDate(java.time.LocalDate.of(2026, 4, 15)); // April 15, 2026
+        testClass.setEndDate(java.time.LocalDate.of(2026, 4, 30));   // April 30, 2026
+
+        // Create session within class period
+        Session validSession = new Session();
+        validSession.setSessionID("SESS-VALID");
+        validSession.setSessionDate(java.sql.Date.valueOf("2026-04-20")); // April 20, 2026 - within period
+        validSession.setStartTime(LocalTime.of(8, 0));
+        validSession.setEndTime(LocalTime.of(9, 30));
+        validSession.setRoom(room1);
+        validSession.setTeacher(teacher1);
+
+        Schedule schedule = builder
+                .withScheduleID("SCH-VALID")
+                .withCreateDate(createDate)
+                .addSession(validSession)
+                .withEnglishClass(testClass)
+                .withConflictChecker(noConflictChecker)
+                .build();
+
+        assertNotNull(schedule);
+        assertEquals("SCH-VALID", schedule.getScheduleID());
     }
 
     @Test
