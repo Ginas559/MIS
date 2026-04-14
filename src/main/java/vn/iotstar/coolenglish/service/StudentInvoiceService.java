@@ -161,11 +161,18 @@ public class StudentInvoiceService {
     }
 
     private static String buildRoomLabel(EnglishClass clazz) {
-        if (clazz.getRoom() != null) {
-            String name = nzStr(clazz.getRoom().getRoomName(), clazz.getRoom().getRoomID());
-            return name + " (" + clazz.getRoom().getRoomID() + ")";
+        Schedule schedule = clazz.getSchedule();
+        if (schedule == null || schedule.getSessions() == null || schedule.getSessions().isEmpty()) {
+            return "—";
         }
-        return nzStr(clazz.getRoomID(), "—");
+        for (var session : schedule.getSessions()) {
+            if (session != null && session.getRoom() != null) {
+                String roomId = session.getRoom().getRoomID();
+                String roomName = nzStr(session.getRoom().getRoomName(), roomId);
+                return roomId == null ? roomName : roomName + " (" + roomId + ")";
+            }
+        }
+        return "—";
     }
 
     private static String buildScheduleSummary(Schedule schedule) {

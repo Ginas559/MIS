@@ -53,13 +53,6 @@ public class EnglishClass implements Serializable {
     @JoinColumn(name = "courseID", referencedColumnName = "courseID", insertable = false, updatable = false)
     private Course course;
 
-    @Column(name = "roomID", length = 50)
-    private String roomID;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "roomID", referencedColumnName = "roomID", insertable = false, updatable = false)
-    private Room room;
-
     @OneToOne(mappedBy = "englishClass", fetch = FetchType.LAZY)
     private Schedule schedule;
 
@@ -79,16 +72,61 @@ public class EnglishClass implements Serializable {
     @OneToMany(mappedBy = "englishClass")
     private List<Enrollment> enrollments = new ArrayList<>();
 
-    @Column(name = "teacher_id")
-    private Long teacherID;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "teacher_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "teacher_id", referencedColumnName = "id", nullable = false)
     private Teacher teacher;
 
     public EnglishClass() {
-        this.status = ClassStatus.OPEN;
+        this.status = ClassStatus.PLANNED;
         this.currentEnrollment = 0;
+        this.enrollments = new ArrayList<>();
+        updateInternalState();
+    }
+
+    /**
+     * Constructor bắt buộc: EnglishClass không thể tồn tại nếu không có giáo viên.
+     * Đảm bảo dữ liệu nhất quán ngay từ bộ nhớ trước khi chạm xuống Database.
+     */
+    public EnglishClass(String classID, String className, Teacher teacher) {
+        this(classID, className, teacher, null, null, 1);
+    }
+
+    public EnglishClass(String classID, String className, Teacher teacher, LocalDate startDate, Integer maxStudent) {
+        this(classID, className, teacher, startDate, null, maxStudent);
+    }
+
+    public EnglishClass(String classID, String className, Teacher teacher,
+            LocalDate startDate, LocalDate endDate, Integer maxStudent) {
+        if (classID == null || classID.isBlank()) {
+            throw new IllegalArgumentException("Class ID is required.");
+        }
+        if (className == null || className.isBlank()) {
+            throw new IllegalArgumentException("Class name is required.");
+        }
+        if (teacher == null) {
+            throw new IllegalArgumentException("Lớp học bắt buộc phải có giáo viên!");
+        }
+        if (startDate == null) {
+            throw new IllegalArgumentException("Ngày bắt đầu là bắt buộc.");
+        }
+        if (endDate == null) {
+            throw new IllegalArgumentException("Ngày kết thúc là bắt buộc.");
+        }
+        if (endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.");
+        }
+        if (maxStudent == null || maxStudent <= 0) {
+            throw new IllegalArgumentException("Sức chứa tối đa phải lớn hơn 0.");
+        }
+        this.classID = classID;
+        this.className = className;
+        this.teacher = teacher;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.maxStudent = maxStudent;
+        this.status = ClassStatus.PLANNED;
+        this.currentEnrollment = 0;
+        this.enrollments = new ArrayList<>();
         updateInternalState();
     }
 
@@ -101,6 +139,9 @@ public class EnglishClass implements Serializable {
         }
         if (currentEnrollment == null) {
             currentEnrollment = 0;
+        }
+        if (enrollments == null) {
+            enrollments = new ArrayList<>();
         }
         state = ClassStateFactory.fromStatus(status);
     }
@@ -173,22 +214,6 @@ public class EnglishClass implements Serializable {
         this.courseID = course != null ? course.getCourseID() : null;
     }
 
-    public String getRoomID() {
-        return roomID;
-    }
-
-    public void setRoomID(String roomID) {
-        this.roomID = roomID;
-    }
-
-    public Room getRoom() {
-        return room;
-    }
-
-    public void setRoom(Room room) {
-        this.room = room;
-        this.roomID = room != null ? room.getRoomID() : null;
-    }
 
     public Schedule getSchedule() {
         return schedule;
@@ -247,28 +272,39 @@ public class EnglishClass implements Serializable {
     }
 
     public void setEnrollments(List<Enrollment> enrollments) {
-        this.enrollments = enrollments;
-    }
-
-    public Long getTeacherID() {
-        return teacherID;
-    }
-
-    public void setTeacherID(Long teacherID) {
-        this.teacherID = teacherID;
+        this.enrollments = enrollments == null ? new ArrayList<>() : enrollments;
     }
 
     public Teacher getTeacher() {
         return teacher;
     }
 
+    public String getTeacherName() {
+        return teacher == null ? null : teacher.getFullName();
+    }
+
+    /**
+     * Backward-compatible accessor for legacy JSP/controller code.
+     * Uses teacher relation as single source of truth.
+     */
+    @Deprecated
+    public Long getTeacherID() {
+        return teacher == null ? null : teacher.getId();
+    }
+
     public void setTeacher(Teacher teacher) {
         assignTeacher(teacher);
     }
 
-    // Keep teacher replacement as a simple reference change to avoid affecting class state/enrollment.
+    /**
+     * Teacher Replacement: Cập nhật tham chiếu teacher sang một đối tượng Teacher mới.
+     * Nhờ State Pattern, trạng thái vận hành của lớp (RUNNING, OPEN, etc.) vẫn được giữ nguyên.
+     * Các bản ghi liên quan như Enrollment hay Schedule vẫn trỏ về EnglishClass.
+     */
     public void assignTeacher(Teacher newTeacher) {
+        if (newTeacher == null) {
+            throw new IllegalArgumentException("Lớp học bắt buộc phải có giáo viên!");
+        }
         this.teacher = newTeacher;
-        this.teacherID = newTeacher != null ? newTeacher.getId() : null;
     }
 }

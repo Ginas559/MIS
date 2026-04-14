@@ -22,10 +22,12 @@ import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Enrollment;
 import vn.iotstar.coolenglish.entity.Invoice;
 import vn.iotstar.coolenglish.entity.Student;
+import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.ClassStatus;
 import vn.iotstar.coolenglish.enums.InvoiceStatus;
 import vn.iotstar.coolenglish.enums.StudentStatus;
+import vn.iotstar.coolenglish.enums.TeacherStatus;
 import vn.iotstar.coolenglish.enums.UserRole;
 
 class EnrollmentFacadeTest {
@@ -60,7 +62,7 @@ class EnrollmentFacadeTest {
             assertEquals(InvoiceStatus.UNPAID, result.getInvoice().getStatus());
             assertEquals(data.courseFee, result.getInvoice().getTotalAmount());
         } finally {
-            purgeByClassAndStudent(data.classID, data.studentEmail, data.courseID);
+            purgeByClassAndStudent(data.classID, data.studentEmail, data.courseID, data.teacherEmail);
         }
     }
 
@@ -71,7 +73,7 @@ class EnrollmentFacadeTest {
             assertThrows(IllegalStateException.class,
                     () -> EnrollmentFacade.getInstance().enrollStudent(data.classID, data.studentEmail));
         } finally {
-            purgeByClassAndStudent(data.classID, data.studentEmail, data.courseID);
+            purgeByClassAndStudent(data.classID, data.studentEmail, data.courseID, data.teacherEmail);
         }
     }
 
@@ -101,7 +103,7 @@ class EnrollmentFacadeTest {
                 em.close();
             }
         } finally {
-            purgeByClassAndStudent(data.classID, data.studentEmail, data.courseID);
+            purgeByClassAndStudent(data.classID, data.studentEmail, data.courseID, data.teacherEmail);
         }
     }
 
@@ -117,7 +119,7 @@ class EnrollmentFacadeTest {
 
             assertTrue(ex.getMessage().contains("role khong hop le"));
         } finally {
-            purgeByClassAndStudent(data.classID, nonStudentEmail, data.courseID);
+            purgeByClassAndStudent(data.classID, nonStudentEmail, data.courseID, data.teacherEmail);
             deleteUserAccount(nonStudentEmail);
         }
     }
@@ -132,7 +134,7 @@ class EnrollmentFacadeTest {
 
             assertTrue(ex.getMessage().contains("chua dang ky"));
         } finally {
-            purgeByClassAndStudent(data.classID, unknownEmail, data.courseID);
+            purgeByClassAndStudent(data.classID, unknownEmail, data.courseID, data.teacherEmail);
         }
     }
 
@@ -175,6 +177,7 @@ class EnrollmentFacadeTest {
         String token = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         String courseID = prefix + "COURSE_" + token;
         String classID = prefix + "CLASS_" + token;
+        String teacherEmail = (prefix + "teacher_" + token + "@test.local").toLowerCase();
 
         EntityManager em = JPAUtil.getEntityManager();
         try {
@@ -190,6 +193,13 @@ class EnrollmentFacadeTest {
             course.setStatus("ACTIVE");
             em.persist(course);
 
+            Teacher teacher = new Teacher();
+            teacher.setFullName("Facade Test Teacher");
+            teacher.setEmail(teacherEmail);
+            teacher.setTeacherID("TCH_" + token);
+            teacher.setStatus(TeacherStatus.ACTIVE);
+            em.persist(teacher);
+
             EnglishClass clazz = new EnglishClass();
             clazz.setClassID(classID);
             clazz.setClassName("Facade Test Class");
@@ -197,11 +207,12 @@ class EnrollmentFacadeTest {
             clazz.setMaxCapacity(maxCapacity);
             clazz.setCurrentEnrollment(currentEnrollment);
             clazz.setStatus(classStatus);
+            clazz.setTeacher(teacher);
             clazz.updateInternalState();
             em.persist(clazz);
 
             em.getTransaction().commit();
-            return new TestData(courseID, classID, "", 1234567.0);
+            return new TestData(courseID, classID, "", 1234567.0, teacherEmail);
         } catch (RuntimeException e) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
@@ -233,6 +244,14 @@ class EnrollmentFacadeTest {
             course.setStatus("ACTIVE");
             em.persist(course);
 
+            String teacherEmail = (prefix + "teacher_" + token + "@test.local").toLowerCase();
+            Teacher teacher = new Teacher();
+            teacher.setFullName("Facade Test Teacher");
+            teacher.setEmail(teacherEmail);
+            teacher.setTeacherID("TCH_" + token);
+            teacher.setStatus(TeacherStatus.ACTIVE);
+            em.persist(teacher);
+
             EnglishClass clazz = new EnglishClass();
             clazz.setClassID(classID);
             clazz.setClassName("Facade Test Class");
@@ -240,6 +259,7 @@ class EnrollmentFacadeTest {
             clazz.setMaxCapacity(maxCapacity);
             clazz.setCurrentEnrollment(currentEnrollment);
             clazz.setStatus(classStatus);
+            clazz.setTeacher(teacher);
             clazz.updateInternalState();
             em.persist(clazz);
 
@@ -251,7 +271,7 @@ class EnrollmentFacadeTest {
             em.persist(student);
 
             em.getTransaction().commit();
-            return new TestData(courseID, classID, studentEmail, fee);
+            return new TestData(courseID, classID, studentEmail, fee, teacherEmail);
         } catch (RuntimeException e) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
@@ -262,7 +282,7 @@ class EnrollmentFacadeTest {
         }
     }
 
-    private void purgeByClassAndStudent(String classID, String studentEmail, String courseID) {
+    private void purgeByClassAndStudent(String classID, String studentEmail, String courseID, String teacherEmail) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             em.getTransaction().begin();
@@ -302,6 +322,12 @@ class EnrollmentFacadeTest {
                         .executeUpdate();
             }
 
+            if (teacherEmail != null && !teacherEmail.isBlank()) {
+                em.createNativeQuery("DELETE FROM person WHERE person_type = 'TEACHER' AND email = ?")
+                        .setParameter(1, teacherEmail)
+                        .executeUpdate();
+            }
+
             em.getTransaction().commit();
         } catch (RuntimeException e) {
             if (em.getTransaction().isActive()) {
@@ -318,12 +344,14 @@ class EnrollmentFacadeTest {
         private final String classID;
         private final String studentEmail;
         private final Double courseFee;
+        private final String teacherEmail;
 
-        private TestData(String courseID, String classID, String studentEmail, Double courseFee) {
+        private TestData(String courseID, String classID, String studentEmail, Double courseFee, String teacherEmail) {
             this.courseID = courseID;
             this.classID = classID;
             this.studentEmail = studentEmail;
             this.courseFee = courseFee;
+            this.teacherEmail = teacherEmail;
         }
     }
 }

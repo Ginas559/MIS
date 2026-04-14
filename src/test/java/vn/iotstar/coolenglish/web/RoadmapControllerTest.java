@@ -1,12 +1,17 @@
 package vn.iotstar.coolenglish.web;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 
+import vn.iotstar.coolenglish.dao.impl.RoadmapDAO;
+import vn.iotstar.coolenglish.entity.Roadmap;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.UserRole;
 
@@ -27,7 +32,7 @@ class RoadmapControllerTest {
 
     @Test
     void shouldForwardToRoadmapPageWhenUserIsLoggedIn() throws Exception {
-        RoadmapController controller = new RoadmapController();
+        RoadmapController controller = new RoadmapController(new StubRoadmapDAO());
 
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/roadmaps");
         request.setContextPath("/app");
@@ -41,6 +46,14 @@ class RoadmapControllerTest {
         controller.doGet(request, response);
 
         assertEquals("/WEB-INF/views/roadmap-list.jsp", response.getForwardedUrl());
+        assertNotNull(request.getAttribute("roadmaps"));
+    }
+
+    private static final class StubRoadmapDAO extends RoadmapDAO {
+        @Override
+        public List<Roadmap> findAllActive() {
+            return List.of();
+        }
     }
 }
 

@@ -12,10 +12,10 @@ public class Lesson extends AcademicContentEntity {
 
     private static final long serialVersionUID = 1L;
 
-    @Column(name = "lesson_type", length = 50)
+    @Column(name = "lesson_type", length = 50, columnDefinition = "NVARCHAR(50)")
     private String lessonType;
 
-    @Column(name = "resource_url", length = 500)
+    @Column(name = "resource_url", length = 500, columnDefinition = "NVARCHAR(500)")
     private String resourceUrl;
 
     public Lesson() {

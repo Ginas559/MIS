@@ -30,23 +30,25 @@
         <h1 class="app-title mb-3">Roadmap tu hoc</h1>
         <p class="app-subtle mb-4">Chon roadmap phu hop, he thong se tu dong kiem tra quyen truy cap cua ban.</p>
 
-        <div class="row g-4">
-            <div class="col-md-4">
-                <h2 class="h5 app-title">TOEIC 2 ky nang RL</h2>
-                <p class="app-subtle mb-3">Lo trinh Reading + Listening voi bai hoc nen tang va luyen de.</p>
-                <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/learning?roadmapCode=TOEIC_RL">Vao roadmap</a>
-            </div>
-            <div class="col-md-4">
-                <h2 class="h5 app-title">TOEIC 2 ky nang SW</h2>
-                <p class="app-subtle mb-3">Lo trinh Speaking + Writing theo tinh huong giao tiep thuc te.</p>
-                <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/learning?roadmapCode=TOEIC_SW">Vao roadmap</a>
-            </div>
-            <div class="col-md-4">
-                <h2 class="h5 app-title">IELTS</h2>
-                <p class="app-subtle mb-3">Lo trinh IELTS 4 ky nang ket hop noi dung noi bo va doi tac.</p>
-                <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/learning?roadmapCode=IELTS">Vao roadmap</a>
-            </div>
-        </div>
+        <c:choose>
+            <c:when test="${empty roadmaps}">
+                <div class="alert alert-light border mb-0" role="status">Chưa có roadmap</div>
+            </c:when>
+            <c:otherwise>
+                <div class="row g-4">
+                    <c:forEach items="${roadmaps}" var="roadmap">
+                        <div class="col-md-4">
+                            <h2 class="h5 app-title"><c:out value="${roadmap.title}" /></h2>
+                            <p class="app-subtle mb-3">
+                                <c:out value="${empty roadmap.description ? 'Roadmap chua co mo ta.' : roadmap.description}" />
+                            </p>
+                            <a class="btn btn-outline-sky"
+                               href="${pageContext.request.contextPath}/learning?roadmapCode=${roadmap.roadmapCode}">Vao roadmap</a>
+                        </div>
+                    </c:forEach>
+                </div>
+            </c:otherwise>
+        </c:choose>
     </section>
 </div>
 

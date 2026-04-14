@@ -2,20 +2,17 @@
 <%@ page import="java.util.List" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Course" %>
 <%@ page import="vn.iotstar.coolenglish.entity.EnglishClass" %>
-<%@ page import="vn.iotstar.coolenglish.entity.Room" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Teacher" %>
 <%@ page import="vn.iotstar.coolenglish.enums.ClassStatus" %>
 <%
     EnglishClass classroom = (EnglishClass) request.getAttribute("classroom");
     List<Course> courses = (List<Course>) request.getAttribute("courses");
-    List<Room> rooms = (List<Room>) request.getAttribute("rooms");
     List<Teacher> teachers = (List<Teacher>) request.getAttribute("teachers");
     boolean editing = classroom != null && classroom.getClassID() != null && !classroom.getClassID().isBlank();
     String actionUrl = editing ? request.getContextPath() + "/admin/class/update" : request.getContextPath() + "/admin/class/add";
     ClassStatus selectedStatus = classroom == null || classroom.getStatus() == null ? ClassStatus.PLANNED : classroom.getStatus();
     String selectedCourseID = classroom == null ? null : classroom.getCourseID();
-    String selectedRoomID = classroom == null ? null : classroom.getRoomID();
-    Long selectedTeacherID = classroom == null ? null : classroom.getTeacherID();
+    Long selectedTeacherID = classroom == null || classroom.getTeacher() == null ? null : classroom.getTeacher().getId();
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -42,6 +39,19 @@
                        value="<%= classroom == null || classroom.getClassName() == null ? "" : classroom.getClassName() %>" required>
             </div>
 
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Ngay bat dau</label>
+                    <input type="date" class="form-control" name="startDate"
+                           value="<%= classroom == null || classroom.getStartDate() == null ? "" : classroom.getStartDate() %>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ngay ket thuc</label>
+                    <input type="date" class="form-control" name="endDate"
+                           value="<%= classroom == null || classroom.getEndDate() == null ? "" : classroom.getEndDate() %>">
+                </div>
+            </div>
+
             <div>
                 <label class="form-label">Ma khoa hoc</label>
                 <select class="form-select" name="courseID">
@@ -51,21 +61,6 @@
                             <option value="<%= course.getCourseID() %>"
                                 <%= selectedCourseID != null && selectedCourseID.equals(course.getCourseID()) ? "selected" : "" %>>
                                 <%= course.getCourseID() %> - <%= course.getCourseName() == null ? "N/A" : course.getCourseName() %>
-                            </option>
-                        <% } %>
-                    <% } %>
-                </select>
-            </div>
-
-            <div>
-                <label class="form-label">Ma phong hoc</label>
-                <select class="form-select" name="roomID">
-                    <option value="">-- Chon phong hoc --</option>
-                    <% if (rooms != null) { %>
-                        <% for (Room room : rooms) { %>
-                            <option value="<%= room.getRoomID() %>"
-                                <%= selectedRoomID != null && selectedRoomID.equals(room.getRoomID()) ? "selected" : "" %>>
-                                <%= room.getRoomID() %> - <%= room.getRoomName() == null ? "N/A" : room.getRoomName() %>
                             </option>
                         <% } %>
                     <% } %>
@@ -95,8 +90,8 @@
 
             <div>
                 <label class="form-label">Giao vien phu trach</label>
-                <select class="form-select" name="teacherID">
-                    <option value="">-- Chua gan giao vien --</option>
+                <select class="form-select" name="teacherID" required>
+                    <option value="">-- Chon giao vien --</option>
                     <% if (teachers != null) { %>
                         <% for (Teacher teacher : teachers) { %>
                             <option value="<%= teacher.getId() %>"

@@ -74,7 +74,7 @@
                     <% if (classes != null) {
                         for (EnglishClass englishClass : classes) { %>
                     <option value="<%= englishClass.getClassID() %>" <%= englishClass.getClassID().equals(selectedClassID) ? "selected" : "" %>>
-                        <%= englishClass.getClassName() %> (<%= englishClass.getClassID() %>)
+                        <%= englishClass.getClassName() %> (<%= englishClass.getClassID() %>) - <%= englishClass.getTeacherName() == null ? "--" : englishClass.getTeacherName() %>
                     </option>
                     <% }} %>
                 </select>
@@ -83,6 +83,7 @@
                 <% if (selectedClass != null) { %>
                 <div class="border rounded p-3 bg-light">
                     <div><strong>Course:</strong> <%= selectedClass.getCourseID() == null ? "--" : selectedClass.getCourseID() %></div>
+                    <div><strong>Giao vien:</strong> <%= selectedClass.getTeacherName() == null ? "--" : selectedClass.getTeacherName() %></div>
                     <div><strong>Hoc vien da ghi danh:</strong> <%= enrollments == null ? 0 : enrollments.size() %></div>
                     <div><strong>Trang thai:</strong> <%= selectedClass.getStatus() %></div>
                 </div>

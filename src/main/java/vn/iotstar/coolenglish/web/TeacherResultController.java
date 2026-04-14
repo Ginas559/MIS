@@ -96,7 +96,7 @@ public class TeacherResultController extends HttpServlet {
         boolean teacherView = actor.getRole() == UserRole.TEACHER;
         List<EnglishClass> classes = teacherView
                 ? findTeacherClasses(actor)
-                : englishClassDAO.findAll(EnglishClass.class);
+                : englishClassDAO.findAllWithDetails();
 
         req.setAttribute("classes", classes);
         req.setAttribute("message", resolveMessage(req.getParameter("msg")));
@@ -316,7 +316,8 @@ public class TeacherResultController extends HttpServlet {
 
         EnglishClass englishClass = englishClassDAO.findByClassID(classID);
         Long teacherPersonId = resolveTeacherPersonId(actor);
-        if (englishClass == null || teacherPersonId == null || !teacherPersonId.equals(englishClass.getTeacherID())) {
+        if (englishClass == null || teacherPersonId == null || englishClass.getTeacher() == null
+                || !teacherPersonId.equals(englishClass.getTeacher().getId())) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Ban khong co quyen quan ly lop hoc nay");
         }
     }

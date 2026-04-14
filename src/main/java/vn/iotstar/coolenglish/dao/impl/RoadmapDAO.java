@@ -54,6 +54,63 @@ public class RoadmapDAO extends AbstractDAO<Roadmap> {
             em.close();
         }
     }
+
+    public boolean existsByCodeIgnoreCase(String roadmapCode) {
+        if (roadmapCode == null || roadmapCode.isBlank()) {
+            return false;
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                    "SELECT COUNT(r.id) FROM Roadmap r WHERE UPPER(r.roadmapCode) = :roadmapCode",
+                    Long.class);
+            query.setParameter("roadmapCode", roadmapCode.trim().toUpperCase());
+            Long total = query.getSingleResult();
+            return total != null && total > 0;
+        } finally {
+            em.close();
+        }
+    }
+
+    public long countByRootModuleId(Long rootModuleId) {
+        if (rootModuleId == null) {
+            return 0L;
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                    "SELECT COUNT(r.id) FROM Roadmap r WHERE r.rootModule.id = :rootModuleId",
+                    Long.class);
+            query.setParameter("rootModuleId", rootModuleId);
+            Long total = query.getSingleResult();
+            return total == null ? 0L : total;
+        } finally {
+            em.close();
+        }
+    }
+
+    public long countByRootModuleIdExcludingRoadmap(Long rootModuleId, Long roadmapId) {
+        if (rootModuleId == null) {
+            return 0L;
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                    "SELECT COUNT(r.id) FROM Roadmap r "
+                            + "WHERE r.rootModule.id = :rootModuleId "
+                            + "AND (:roadmapId IS NULL OR r.id <> :roadmapId)",
+                    Long.class);
+            query.setParameter("rootModuleId", rootModuleId);
+            query.setParameter("roadmapId", roadmapId);
+            Long total = query.getSingleResult();
+            return total == null ? 0L : total;
+        } finally {
+            em.close();
+        }
+    }
 }
 
 

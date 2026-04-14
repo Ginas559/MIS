@@ -31,13 +31,13 @@ public abstract class AcademicContentEntity implements AcademicContent, Serializ
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "title", nullable = false, length = 255)
+    @Column(name = "title", nullable = false, length = 255, columnDefinition = "NVARCHAR(255)")
     private String title;
 
-    @Column(name = "description", length = 2000)
+    @Column(name = "description", length = 2000, columnDefinition = "NVARCHAR(2000)")
     private String description;
 
-    @Column(name = "image_link", length = 500)
+    @Column(name = "image_link", length = 500, columnDefinition = "NVARCHAR(500)")
     private String imageLink;
 
     @ManyToOne(fetch = FetchType.LAZY)

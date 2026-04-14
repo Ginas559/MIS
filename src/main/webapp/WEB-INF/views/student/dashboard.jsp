@@ -5,7 +5,6 @@
 <%@ page import="vn.iotstar.coolenglish.entity.Enrollment" %>
 <%@ page import="vn.iotstar.coolenglish.entity.EnglishClass" %>
 <%@ page import="vn.iotstar.coolenglish.entity.ExamResult" %>
-<%@ page import="vn.iotstar.coolenglish.entity.Room" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Schedule" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Session" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Student" %>
@@ -32,7 +31,7 @@
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
             <div>
                 <h1 class="h3 app-title mb-1">Khong gian hoc tap ca nhan</h1>
-                <p class="app-subtle mb-0">Xin chao <strong><%= studentName %></strong>, ban co the xem lich hoc cua cac lop da ghi danh va ket qua cac bai test giao vien da giao.</p>
+                <p class="app-subtle mb-0">Xin chao <strong><%= studentName %></strong>, ban co the xem lich hoc theo tung buoi cua cac lop da ghi danh va ket qua cac bai test giao vien da giao.</p>
             </div>
             <div class="d-flex gap-3 flex-wrap">
                 <div class="app-kpi">
@@ -53,8 +52,8 @@
         <section id="schedule-section" class="app-anchor-offset mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h2 class="h4 mb-1">Lich hoc da ghi danh</h2>
-                    <p class="app-subtle mb-0">Thong tin lop hoc, khoa hoc, phong hoc va tung buoi hoc cua ban.</p>
+                    <h2 class="h4 mb-1">Lich hoc theo buoi da ghi danh</h2>
+                    <p class="app-subtle mb-0">Thong tin lop hoc, khoa hoc va phong hoc theo tung buoi cua ban.</p>
                 </div>
             </div>
 
@@ -65,7 +64,6 @@
                 <% for (Enrollment enrollment : enrollments) {
                     EnglishClass englishClass = enrollment.getEnglishClass();
                     Course course = englishClass != null ? englishClass.getCourse() : null;
-                    Room room = englishClass != null ? englishClass.getRoom() : null;
                     Teacher teacher = englishClass != null ? englishClass.getTeacher() : null;
                     Schedule schedule = englishClass != null ? englishClass.getSchedule() : null;
                     List<ExamResult> classResults = resultsByClassID == null || englishClass == null
@@ -85,12 +83,6 @@
                                     -
                                     <%= englishClass == null || englishClass.getEndDate() == null ? "--" : englishClass.getEndDate() %>
                                 </p>
-                                <p class="mb-2"><strong>Phong hoc:</strong>
-                                    <%= room == null ? "--" : room.getRoomName() %>
-                                    <% if (room != null && room.getLocation() != null) { %>
-                                        (<%= room.getLocation() %>)
-                                    <% } %>
-                                </p>
                                 <p class="mb-2"><strong>Giao vien:</strong> <%= teacher == null ? "--" : teacher.getFullName() %></p>
                                 <p class="mb-0"><strong>Trang thai ghi danh:</strong> <span class="status-pill"><%= enrollment.getStatus() %></span></p>
                             </div>
@@ -107,7 +99,7 @@
                                         <th>Buoi hoc</th>
                                         <th>Ngay</th>
                                         <th>Gio hoc</th>
-                                        <th>Phong</th>
+                                        <th>Phong hoc theo buoi</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -121,11 +113,11 @@
                                             -
                                             <%= sessionItem.getEndTime() == null ? "--" : sessionItem.getEndTime() %>
                                         </td>
-                                        <td><%= sessionItem.getRoom() == null ? (room == null ? "--" : room.getRoomName()) : sessionItem.getRoom().getRoomName() %></td>
+                                        <td><%= sessionItem.getRoom() == null ? "--" : sessionItem.getRoom().getRoomName() %></td>
                                     </tr>
                                     <% }} else { %>
                                     <tr>
-                                        <td colspan="4" class="text-center app-subtle">Lop nay chua co lich hoc chi tiet.</td>
+                                        <td colspan="4" class="text-center app-subtle">Lop nay chua co lich hoc theo buoi chi tiet.</td>
                                     </tr>
                                     <% } %>
                                     </tbody>

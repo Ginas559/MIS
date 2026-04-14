@@ -111,10 +111,10 @@ public class EnrollmentDAO extends AbstractDAO<Enrollment> {
                             + "JOIN FETCH e.student s "
                             + "JOIN FETCH e.englishClass c "
                             + "LEFT JOIN FETCH c.course "
-                            + "LEFT JOIN FETCH c.room "
                             + "LEFT JOIN FETCH c.teacher "
                             + "LEFT JOIN FETCH c.schedule sch "
-                            + "LEFT JOIN FETCH sch.sessions "
+                            + "LEFT JOIN FETCH sch.sessions sess "
+                            + "LEFT JOIN FETCH sess.room "
                             + "WHERE s.email = :studentEmail "
                             + "ORDER BY c.startDate DESC, c.className ASC",
                     Enrollment.class);

@@ -1,6 +1,10 @@
 package vn.iotstar.coolenglish.web;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -13,6 +17,8 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import vn.iotstar.coolenglish.dao.impl.PersonDAO;
 import vn.iotstar.coolenglish.entity.Person;
+import vn.iotstar.coolenglish.entity.Student;
+import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.Gender;
 import vn.iotstar.coolenglish.util.UploadUtils;
@@ -62,9 +68,9 @@ public class ProfileController extends HttpServlet {
             return;
         }
 
-        String fullName = normalize(req.getParameter("fullName"));
-        String phone = normalize(req.getParameter("phone"));
-        Gender gender = parseGender(req.getParameter("gender"));
+        String fullName = getFormField(req, "fullName");
+        String phone = getFormField(req, "phone");
+        Gender gender = parseGender(getFormField(req, "gender"));
 
         if (fullName == null) {
             req.setAttribute("person", person);
@@ -102,6 +108,8 @@ public class ProfileController extends HttpServlet {
         } else {
             person.updateProfile(fullName, gender, phone, currentUser.getEmail());
         }
+
+        updateRoleSpecificProfile(person, req);
         
         personDAO.update(person);
 
@@ -155,6 +163,62 @@ public class ProfileController extends HttpServlet {
         try {
             return Gender.valueOf(normalized.toUpperCase());
         } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    private void updateRoleSpecificProfile(Person person, HttpServletRequest req) throws ServletException, IOException {
+        if (person instanceof Student student) {
+            student.setDateOfBirth(parseLocalDate(getFormField(req, "dateOfBirth")));
+            if (student.getRegistrationDate() == null) {
+                student.setRegistrationDate(LocalDate.now());
+            }
+            return;
+        }
+
+        if (person instanceof Teacher teacher) {
+            teacher.setSpecialty(getFormField(req, "specialty"));
+            teacher.setCertificate(getFormField(req, "certificate"));
+            if (teacher.getHireDate() == null) {
+                teacher.setHireDate(LocalDate.now());
+            }
+        }
+    }
+
+    private String getFormField(HttpServletRequest req, String fieldName) throws ServletException, IOException {
+        String value = normalize(req.getParameter(fieldName));
+        if (value != null) {
+            return value;
+        }
+
+        Part part;
+        try {
+            part = req.getPart(fieldName);
+        } catch (IllegalStateException ex) {
+            return null;
+        }
+        if (part == null) {
+            return null;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(part.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            return normalize(sb.toString());
+        }
+    }
+
+    private LocalDate parseLocalDate(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        try {
+            return LocalDate.parse(value);
+        } catch (java.time.format.DateTimeParseException ex) {
             return null;
         }
     }

@@ -84,7 +84,7 @@ public class AttendanceController extends HttpServlet {
             }
 
             EnglishClass englishClass = englishClassDAO.findByClassIdWithScheduleSessions(classId);
-            if (englishClass == null || !teacher.getId().equals(englishClass.getTeacherID())) {
+            if (englishClass == null || englishClass.getTeacher() == null || !teacher.getId().equals(englishClass.getTeacher().getId())) {
                 resp.sendRedirect(req.getContextPath() + "/teacher/classes");
                 return;
             }
@@ -121,7 +121,7 @@ public class AttendanceController extends HttpServlet {
             }
 
             EnglishClass englishClass = englishClassDAO.findByClassIdWithScheduleSessions(classId);
-            if (englishClass == null || !teacher.getId().equals(englishClass.getTeacherID())) {
+            if (englishClass == null || englishClass.getTeacher() == null || !teacher.getId().equals(englishClass.getTeacher().getId())) {
                 resp.sendRedirect(req.getContextPath() + "/teacher/classes");
                 return;
             }
@@ -186,7 +186,7 @@ public class AttendanceController extends HttpServlet {
             }
 
             EnglishClass clazz = englishClassDAO.findByClassIdWithScheduleSessions(classId);
-            if (clazz == null || !teacher.getId().equals(clazz.getTeacherID())) {
+            if (clazz == null || clazz.getTeacher() == null || !teacher.getId().equals(clazz.getTeacher().getId())) {
                 resp.sendRedirect(req.getContextPath() + "/teacher/classes");
                 return;
             }

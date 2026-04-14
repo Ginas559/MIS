@@ -52,6 +52,9 @@
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/roadmap-management">Quan ly roadmap</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/audit-logs">Audit logs</a>
+                <% if (currentUser != null && currentUser.getRole() == UserRole.ADMIN) { %>
+                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/users">Quan ly nguoi dung</a>
+                <% } %>
             <% } %>
             <% if (currentUser != null && currentUser.getRole() == UserRole.TEACHER) { %>
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/teacher/classes">Diem danh</a>
@@ -106,6 +109,9 @@
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/roadmap-grants">Cap quyen roadmap</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/roadmap-management">CRUD roadmap</a>
             <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/integration/exam-results">Dong bo ket qua</a>
+            <% if (currentUser != null && currentUser.getRole() == UserRole.ADMIN) { %>
+            <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/users">Danh sach nguoi dung</a>
+            <% } %>
         </div>
 
         <form method="post" action="${pageContext.request.contextPath}/admin/course/update-fee" class="row g-2 mb-3">

@@ -42,6 +42,9 @@
         <div class="mb-3">
             <div><strong>Ma lop:</strong> <%= classroom.getClassID() %></div>
             <div><strong>Ten lop:</strong> <%= classroom.getClassName() == null ? "" : classroom.getClassName() %></div>
+            <div><strong>Giao vien:</strong> <%= classroom.getTeacherName() == null ? "--" : classroom.getTeacherName() %></div>
+            <div><strong>Ngay bat dau:</strong> <%= classroom.getStartDate() == null ? "--" : classroom.getStartDate() %></div>
+            <div><strong>Ngay ket thuc:</strong> <%= classroom.getEndDate() == null ? "--" : classroom.getEndDate() %></div>
             <div><strong>Trang thai:</strong> <%= classroom.getStatus() %></div>
             <div><strong>Hoc vien:</strong> <%= classroom.getCurrentEnrollment() == null ? 0 : classroom.getCurrentEnrollment() %> / <%= classroom.getMaxCapacity() == null ? "-" : classroom.getMaxCapacity() %></div>
         </div>

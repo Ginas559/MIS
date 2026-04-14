@@ -1,6 +1,7 @@
 package vn.iotstar.coolenglish.entity;
 
 import java.io.Serializable;
+import java.io.Serial;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,6 +20,7 @@ import vn.iotstar.coolenglish.enums.UserRole;
 @EntityListeners(AuditEntityListener.class)
 public class UserAccount implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -42,6 +44,9 @@ public class UserAccount implements Serializable {
     @Column(name = "related_id")
     private Long relatedID;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean active = true;
+
     public UserAccount() {
     }
 
@@ -50,6 +55,15 @@ public class UserAccount implements Serializable {
         this.username = username;
         this.password = password;
         this.role = role;
+    }
+
+
+    public UserAccount(String email, String username, String password, UserRole role, boolean active) {
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.active = active;
     }
 
     public String getEmail() {
@@ -103,6 +117,15 @@ public class UserAccount implements Serializable {
     public boolean login(String inputPassword) {
         return password != null && password.equals(inputPassword);
     }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
 
     public void changePassword(String currentPassword, String newPassword) {
         if (!login(currentPassword)) {

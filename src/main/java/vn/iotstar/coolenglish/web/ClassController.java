@@ -1,6 +1,8 @@
 package vn.iotstar.coolenglish.web;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import jakarta.servlet.RequestDispatcher;
@@ -12,17 +14,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.iotstar.coolenglish.dao.impl.CourseDAO;
 import vn.iotstar.coolenglish.dao.impl.EnglishClassDAO;
-import vn.iotstar.coolenglish.dao.impl.RoomDAO;
 import vn.iotstar.coolenglish.dao.impl.TeacherDAO;
 import vn.iotstar.coolenglish.entity.Course;
 import vn.iotstar.coolenglish.entity.EnglishClass;
-import vn.iotstar.coolenglish.entity.Room;
 import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.ClassStatus;
 import vn.iotstar.coolenglish.facade.EnrollmentFacade;
 import vn.iotstar.coolenglish.factory.SecurityAccessFactory;
-import vn.iotstar.coolenglish.service.IClassService;
 
 @WebServlet(urlPatterns = {
         "/admin/class",
@@ -37,7 +36,6 @@ public class ClassController extends HttpServlet {
 
     private final EnglishClassDAO englishClassDAO = new EnglishClassDAO();
     private final CourseDAO courseDAO = new CourseDAO();
-    private final RoomDAO roomDAO = new RoomDAO();
     private final TeacherDAO teacherDAO = new TeacherDAO();
     private final SecurityAccessFactory securityAccessFactory = SecurityAccessFactory.getInstance();
 
@@ -48,13 +46,11 @@ public class ClassController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
         handleRequest(req, resp, true);
     }
 
     private void handleRequest(HttpServletRequest req, HttpServletResponse resp, boolean isPost)
             throws ServletException, IOException {
-        UserAccount currentUser = resolveCurrentUser(req);
         String servletPath = req.getServletPath();
 
         if (servletPath.endsWith("/delete")) {
@@ -64,7 +60,11 @@ public class ClassController extends HttpServlet {
 
         if (servletPath.endsWith("/add")) {
             if (isPost) {
-                saveClass(req, resp, false, currentUser);
+                try {
+                    saveClass(req, resp, false);
+                } catch (IllegalArgumentException ex) {
+                    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+                }
             } else {
                 showForm(req, resp, new EnglishClass());
             }
@@ -73,15 +73,23 @@ public class ClassController extends HttpServlet {
 
         if (servletPath.endsWith("/update")) {
             if (isPost) {
-                saveClass(req, resp, true, currentUser);
+                try {
+                    saveClass(req, resp, true);
+                } catch (IllegalArgumentException ex) {
+                    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+                }
             } else {
                 showEditForm(req, resp);
             }
             return;
         }
 
-        if (servletPath.endsWith("/register") && isPost) {
-            registerStudent(req, resp);
+        if (servletPath.endsWith("/register")) {
+            if (isPost) {
+                registerStudent(req, resp);
+            } else {
+                showRegisterForm(req, resp, null, null, null);
+            }
             return;
         }
 
@@ -90,7 +98,7 @@ public class ClassController extends HttpServlet {
 
     private void showList(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         PaginationSupport.Page<EnglishClass> page = PaginationSupport.paginate(
-                englishClassDAO.findAll(EnglishClass.class),
+                englishClassDAO.findAllWithDetails(),
                 req.getParameter("page"),
                 PaginationSupport.DEFAULT_PAGE_SIZE);
 
@@ -106,11 +114,9 @@ public class ClassController extends HttpServlet {
     private void showForm(HttpServletRequest req, HttpServletResponse resp, EnglishClass clazz)
             throws ServletException, IOException {
         List<Course> courses = courseDAO.findAll(Course.class);
-        List<Room> rooms = roomDAO.findAll(Room.class);
         List<Teacher> teachers = teacherDAO.findAll(Teacher.class);
         req.setAttribute("classroom", clazz);
         req.setAttribute("courses", courses);
-        req.setAttribute("rooms", rooms);
         req.setAttribute("teachers", teachers);
         forward(req, resp, "/WEB-INF/views/admin/class-form.jsp");
     }
@@ -122,7 +128,7 @@ public class ClassController extends HttpServlet {
             return;
         }
 
-        EnglishClass clazz = englishClassDAO.findByClassID(classID);
+        EnglishClass clazz = englishClassDAO.findByClassIDWithDetails(classID);
         if (clazz == null) {
             redirectToList(req, resp);
             return;
@@ -131,27 +137,76 @@ public class ClassController extends HttpServlet {
         showForm(req, resp, clazz);
     }
 
-    private void saveClass(HttpServletRequest req, HttpServletResponse resp, boolean update, UserAccount currentUser)
+    private void saveClass(HttpServletRequest req, HttpServletResponse resp, boolean update)
             throws IOException {
+        UserAccount currentUser = resolveCurrentUser(req);
+        if (currentUser == null) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Login is required.");
+            return;
+        }
+
+        String classID = getClassID(req);
+        String className = trim(req.getParameter("className"));
         String courseID = trim(req.getParameter("courseID"));
-        String roomID = trim(req.getParameter("roomID"));
+        String teacherIDRaw = trim(req.getParameter("teacherID"));
+        LocalDate startDate = parseDate(req.getParameter("startDate"));
+        LocalDate endDate = parseDate(req.getParameter("endDate"));
+        Integer maxCapacity = parseInteger(req.getParameter("maxCapacity"));
+
+        if (classID == null || className == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Class ID and class name are required.");
+            return;
+        }
 
         if (courseID != null && courseDAO.findById(courseID, Course.class) == null) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Course does not exist.");
             return;
         }
 
-        if (roomID != null && roomDAO.findById(roomID, Room.class) == null) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Room does not exist.");
+        if (startDate == null || endDate == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Start date and end date are required.");
             return;
         }
 
-        EnglishClass clazz = new EnglishClass();
-        clazz.setClassID(getClassID(req));
-        clazz.setClassName(trim(req.getParameter("className")));
+        if (maxCapacity == null || maxCapacity <= 0) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Max capacity must be greater than 0.");
+            return;
+        }
+
+        if (teacherIDRaw == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Teacher is required.");
+            return;
+        }
+
+        Teacher teacher;
+        try {
+            Long teacherId = Long.valueOf(teacherIDRaw);
+            teacher = teacherDAO.findById(teacherId, Teacher.class);
+            if (teacher == null) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Teacher not found.");
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Teacher ID is invalid.");
+            return;
+        }
+
+        EnglishClass clazz = update ? englishClassDAO.findByClassIDWithDetails(classID) : null;
+        if (update && clazz == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Class not found.");
+            return;
+        }
+
+        if (clazz == null) {
+            clazz = new EnglishClass(classID, className, teacher, startDate, endDate, maxCapacity);
+        } else {
+            clazz.setClassID(classID);
+            clazz.setClassName(className);
+            clazz.setStartDate(startDate);
+            clazz.setEndDate(endDate);
+            clazz.setMaxCapacity(maxCapacity);
+        }
         clazz.setCourseID(courseID);
-        clazz.setRoomID(roomID);
-        clazz.setMaxCapacity(parseInteger(req.getParameter("maxCapacity")));
         clazz.setCurrentEnrollment(parseInteger(req.getParameter("currentEnrollment")));
         clazz.setStatus(parseStatus(req.getParameter("status")));
         clazz.updateInternalState();
@@ -162,22 +217,8 @@ public class ClassController extends HttpServlet {
             englishClassDAO.insert(clazz);
         }
 
-        String teacherIDRaw = trim(req.getParameter("teacherID"));
-        if (teacherIDRaw != null) {
-            try {
-                IClassService classService = securityAccessFactory.getClassService(currentUser);
-                classService.assignTeacher(clazz.getClassID(), Long.valueOf(teacherIDRaw));
-            } catch (NumberFormatException ex) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Teacher ID is invalid.");
-                return;
-            } catch (SecurityException ex) {
-                resp.sendError(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
-                return;
-            } catch (IllegalArgumentException ex) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
-                return;
-            }
-        }
+        securityAccessFactory.getClassService(currentUser).assignTeacher(clazz.getClassID(), teacher.getId());
+
 
         redirectToList(req, resp);
     }
@@ -190,17 +231,37 @@ public class ClassController extends HttpServlet {
         redirectToList(req, resp);
     }
 
-    private void registerStudent(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void showRegisterForm(HttpServletRequest req, HttpServletResponse resp,
+            String studentEmail, String registerError, String registerSuccess)
+            throws ServletException, IOException {
+        String classID = getClassID(req);
+        if (classID == null) {
+            redirectToList(req, resp);
+            return;
+        }
+
+        EnglishClass clazz = englishClassDAO.findByClassIDWithDetails(classID);
+        req.setAttribute("classroom", clazz);
+        req.setAttribute("studentEmail", studentEmail);
+        req.setAttribute("registerError", registerError);
+        req.setAttribute("registerSuccess", registerSuccess);
+        forward(req, resp, "/WEB-INF/views/admin/class-register.jsp");
+    }
+
+    private void registerStudent(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String classID = getClassID(req);
         String studentEmail = trim(req.getParameter("studentEmail"));
 
+        if (classID == null) {
+            redirectToList(req, resp);
+            return;
+        }
+
         try {
             EnrollmentFacade.getInstance().enrollStudent(classID, studentEmail);
-            redirectToList(req, resp);
-        } catch (IllegalArgumentException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-        } catch (IllegalStateException e) {
-            resp.sendError(HttpServletResponse.SC_CONFLICT, e.getMessage());
+            showRegisterForm(req, resp, null, null, "Ghi danh thanh cong.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            showRegisterForm(req, resp, studentEmail, e.getMessage(), null);
         }
     }
 
@@ -222,6 +283,18 @@ public class ClassController extends HttpServlet {
     private Integer parseInteger(String value) {
         String trimmed = trim(value);
         return trimmed == null ? null : Integer.valueOf(trimmed);
+    }
+
+    private LocalDate parseDate(String value) {
+        String trimmed = trim(value);
+        if (trimmed == null) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(trimmed);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException("Date value is invalid: " + trimmed, ex);
+        }
     }
 
     private ClassStatus parseStatus(String value) {
@@ -248,13 +321,13 @@ public class ClassController extends HttpServlet {
 
     private UserAccount resolveCurrentUser(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
-        if (session != null) {
-            Object currentUser = session.getAttribute("user");
-            if (currentUser instanceof UserAccount user) {
-                return user;
-            }
+        if (session == null) {
+            return null;
         }
-        return null;
+
+        Object user = session.getAttribute("user");
+        return user instanceof UserAccount account ? account : null;
     }
+
 }
 
