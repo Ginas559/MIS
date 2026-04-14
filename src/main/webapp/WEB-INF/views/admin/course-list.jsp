@@ -56,6 +56,10 @@
             <% if (currentUser != null && currentUser.getRole() == UserRole.TEACHER) { %>
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/teacher/classes">Diem danh</a>
             <% } %>
+            <% if (isStudent) { %>
+                <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/student/schedule">Lich hoc</a>
+                <a class="btn btn-sky" href="${pageContext.request.contextPath}/student/results">Ket qua hoc tap</a>
+            <% } %>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/profile">Ho so ca nhan</a>
             <% if (currentUser != null) { %>
                 <form method="post" action="${pageContext.request.contextPath}/logout" class="m-0">
@@ -80,6 +84,10 @@
             </div>
             <div class="inline-actions">
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/roadmaps">Trang roadmap tu hoc</a>
+            <% if (isStudent) { %>
+                <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/student/schedule">Lich hoc</a>
+                <a class="btn btn-sky" href="${pageContext.request.contextPath}/student/results">Ket qua hoc tap</a>
+            <% } %>
             <% if (canManage && !managementView) { %>
                 <a class="btn btn-sky" href="/MISEnglish/admin/course">Mo trang quan ly</a>
             <% } %>

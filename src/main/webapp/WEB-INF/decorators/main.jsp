@@ -44,6 +44,10 @@
             <c:choose>
                 <c:when test="${not empty sessionScope.user}">
                     <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/course">Danh sach khoa hoc</a>
+                    <% if (currentUser != null && currentUser.getRole() == UserRole.STUDENT) { %>
+                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/student/schedule">Lich hoc</a>
+                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/student/results">Ket qua hoc tap</a>
+                    <% } %>
                     <% if (currentUser != null && currentUser.getRole() == UserRole.TEACHER) { %>
                     <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/teacher/results">Bang diem</a>
                     <% } %>

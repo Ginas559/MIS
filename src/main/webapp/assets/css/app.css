@@ -99,3 +99,52 @@ body.app-body {
     font-size: 12px;
 }
 
+.app-summary-card {
+    height: 100%;
+    padding: 16px;
+    border: 1px solid var(--gray-300);
+    border-radius: 12px;
+    background-color: #ffffff;
+}
+
+.app-summary-label {
+    color: var(--gray-600);
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.app-summary-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--black-900);
+}
+
+.app-table-wrap {
+    border: 1px solid var(--gray-300);
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+.app-section-block {
+    border: 1px solid var(--gray-300);
+    border-radius: 12px;
+    background-color: #ffffff;
+    padding: 16px;
+}
+
+.app-session-list {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--gray-600);
+}
+
+.app-session-list li + li {
+    margin-top: 6px;
+}
+
+.score-cell {
+    font-weight: 700;
+    color: var(--sky-blue-dark);
+}
+
