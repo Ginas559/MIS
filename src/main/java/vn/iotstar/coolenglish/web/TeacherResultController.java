@@ -5,6 +5,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,8 @@ import vn.iotstar.coolenglish.entity.ExamResult;
 import vn.iotstar.coolenglish.entity.Person;
 import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.entity.UserAccount;
+import vn.iotstar.coolenglish.enums.GradingSystem;
+import vn.iotstar.coolenglish.enums.SkillType;
 import vn.iotstar.coolenglish.enums.UserRole;
 import vn.iotstar.coolenglish.service.ResultSubject;
 
@@ -40,11 +43,9 @@ import vn.iotstar.coolenglish.service.ResultSubject;
 public class TeacherResultController extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-    private static final String FORMAT_TOEIC = "TOEIC";
-    private static final String FORMAT_IELTS = "IELTS";
     private static final String TEST_TOEIC_2_SKILLS = "TOEIC 2 ky nang";
     private static final String TEST_TOEIC_4_SKILLS = "TOEIC 4 ky nang";
-    private static final String TEST_IELTS = "IELTS";
+    private static final String TEST_IELTS = GradingSystem.IELTS.name();
 
     private final EnglishClassDAO englishClassDAO = new EnglishClassDAO();
     private final EnrollmentDAO enrollmentDAO = new EnrollmentDAO();
@@ -103,6 +104,8 @@ public class TeacherResultController extends HttpServlet {
         req.setAttribute("isTeacherView", teacherView);
         req.setAttribute("isStaffView", !teacherView);
         req.setAttribute("dashboardPath", resolveDashboardPath(actor));
+        req.setAttribute("gradingSystems", GradingSystem.values());
+        req.setAttribute("skillTypes", SkillType.values());
 
         String mode = trim(req.getParameter("mode"));
         if (mode == null || (!"input".equals(mode) && !"view".equals(mode))) {
@@ -220,6 +223,10 @@ public class TeacherResultController extends HttpServlet {
         }
 
         ExamResult template = existingResults.get(0);
+        Map<String, ExamResult> existingResultMap = new HashMap<>();
+        for (ExamResult existingResult : existingResults) {
+            existingResultMap.put(normalizeEmailKey(existingResult.getStudentEmail()), existingResult);
+        }
         String[] listeningScores = req.getParameterValues("listeningScore");
         String[] readingScores = req.getParameterValues("readingScore");
         String[] speakingScores = req.getParameterValues("speakingScore");
@@ -230,9 +237,10 @@ public class TeacherResultController extends HttpServlet {
         validateArrayLength(template.usesSpeaking(), studentEmails, speakingScores, "Speaking");
         validateArrayLength(template.usesWriting(), studentEmails, writingScores, "Writing");
 
+        List<ExamResult> resultsToSave = new ArrayList<>();
         for (int i = 0; i < studentEmails.length; i++) {
             String studentEmail = trim(studentEmails[i]);
-            ExamResult result = examResultDAO.findByClassIDAndStudentEmailAndExamCode(classID, studentEmail, examCode);
+            ExamResult result = existingResultMap.get(normalizeEmailKey(studentEmail));
             if (result == null) {
                 result = new ExamResult();
                 result.setPartnerCode("INTERNAL");
@@ -247,21 +255,19 @@ public class TeacherResultController extends HttpServlet {
                 result.setHasSpeaking(template.getHasSpeaking());
                 result.setHasWriting(template.getHasWriting());
                 result.setTakenAt(template.getTakenAt());
-                applySkillScores(result, template.getExamFormat(), template,
-                        template.usesListening() ? listeningScores[i] : null,
-                        template.usesReading() ? readingScores[i] : null,
-                        template.usesSpeaking() ? speakingScores[i] : null,
-                        template.usesWriting() ? writingScores[i] : null);
-                examResultDAO.insert(result);
-            } else {
-                applySkillScores(result, template.getExamFormat(), template,
-                        template.usesListening() ? listeningScores[i] : null,
-                        template.usesReading() ? readingScores[i] : null,
-                        template.usesSpeaking() ? speakingScores[i] : null,
-                        template.usesWriting() ? writingScores[i] : null);
-                examResultDAO.update(result);
             }
 
+            applySkillScores(result, template.getExamFormat(), template,
+                    template.usesListening() ? listeningScores[i] : null,
+                    template.usesReading() ? readingScores[i] : null,
+                    template.usesSpeaking() ? speakingScores[i] : null,
+                    template.usesWriting() ? writingScores[i] : null);
+            resultsToSave.add(result);
+        }
+
+        examResultDAO.saveBatch(resultsToSave);
+
+        for (ExamResult result : resultsToSave) {
             ResultSubject.getInstance().notifyObservers(result);
         }
 
@@ -275,7 +281,7 @@ public class TeacherResultController extends HttpServlet {
         result.setHasReading(template.getHasReading());
         result.setHasSpeaking(template.getHasSpeaking());
         result.setHasWriting(template.getHasWriting());
-        if (FORMAT_IELTS.equalsIgnoreCase(examFormat)) {
+        if (GradingSystem.IELTS.name().equalsIgnoreCase(examFormat)) {
             result.setListeningRaw(null);
             result.setReadingRaw(null);
             result.setSpeakingRaw(null);
@@ -393,7 +399,7 @@ public class TeacherResultController extends HttpServlet {
 
     private String resolveExamFormat(HttpServletRequest req, UserAccount actor, String testType) {
         if (actor.getRole() != UserRole.TEACHER) {
-            return TEST_IELTS.equals(testType) ? FORMAT_IELTS : FORMAT_TOEIC;
+            return TEST_IELTS.equals(testType) ? GradingSystem.IELTS.name() : GradingSystem.TOEIC.name();
         }
         return normalizeExamFormat(req.getParameter("examFormat"));
     }
@@ -404,11 +410,11 @@ public class TeacherResultController extends HttpServlet {
             throw new IllegalArgumentException("Chon he diem TOEIC hoac IELTS cho bai test");
         }
 
-        if (FORMAT_TOEIC.equalsIgnoreCase(examFormat)) {
-            return FORMAT_TOEIC;
+        if (GradingSystem.TOEIC.name().equalsIgnoreCase(examFormat)) {
+            return GradingSystem.TOEIC.name();
         }
-        if (FORMAT_IELTS.equalsIgnoreCase(examFormat)) {
-            return FORMAT_IELTS;
+        if (GradingSystem.IELTS.name().equalsIgnoreCase(examFormat)) {
+            return GradingSystem.IELTS.name();
         }
         throw new IllegalArgumentException("He diem bai test khong hop le");
     }
@@ -422,10 +428,10 @@ public class TeacherResultController extends HttpServlet {
                 return new SkillSelection(true, true, true, true);
             }
         }
-        boolean listening = req.getParameter("hasListening") != null;
-        boolean reading = req.getParameter("hasReading") != null;
-        boolean speaking = req.getParameter("hasSpeaking") != null;
-        boolean writing = req.getParameter("hasWriting") != null;
+        boolean listening = req.getParameter(toSkillParameterName(SkillType.LISTENING)) != null;
+        boolean reading = req.getParameter(toSkillParameterName(SkillType.READING)) != null;
+        boolean speaking = req.getParameter(toSkillParameterName(SkillType.SPEAKING)) != null;
+        boolean writing = req.getParameter(toSkillParameterName(SkillType.WRITING)) != null;
         if (!listening && !reading && !speaking && !writing) {
             throw new IllegalArgumentException("Can chon it nhat mot ky nang cho bai test");
         }
@@ -552,6 +558,16 @@ public class TeacherResultController extends HttpServlet {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String toSkillParameterName(SkillType skillType) {
+        String normalized = skillType.name().charAt(0) + skillType.name().substring(1).toLowerCase();
+        return "has" + normalized;
+    }
+
+    private String normalizeEmailKey(String email) {
+        String trimmedEmail = trim(email);
+        return trimmedEmail == null ? null : trimmedEmail.toLowerCase();
     }
 
     private record SkillSelection(boolean listening, boolean reading, boolean speaking, boolean writing) {

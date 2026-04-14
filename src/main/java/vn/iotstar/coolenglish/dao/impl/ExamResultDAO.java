@@ -41,6 +41,40 @@ public class ExamResultDAO extends AbstractDAO<ExamResult> {
         }
     }
 
+    public void saveBatch(List<ExamResult> examResults) {
+        if (examResults == null || examResults.isEmpty()) {
+            return;
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            int index = 0;
+            for (ExamResult result : examResults) {
+                validateEntity(result);
+                if (result.getId() == null) {
+                    em.persist(result);
+                } else {
+                    em.merge(result);
+                }
+
+                index++;
+                if (index % 25 == 0) {
+                    em.flush();
+                    em.clear();
+                }
+            }
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
     public List<ExamResult> findByClassID(String classID) {
         EntityManager em = JPAUtil.getEntityManager();
         try {

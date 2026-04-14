@@ -2,12 +2,15 @@ package vn.iotstar.coolenglish.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import vn.iotstar.coolenglish.dao.impl.NotificationDAO;
 
 public class ResultSubject {
 
     private static final ResultSubject INSTANCE = new ResultSubject();
+    private static final ExecutorService NOTIFICATION_EXECUTOR = Executors.newFixedThreadPool(2);
     private final List<ResultObserver> observers = new ArrayList<>();
 
     private ResultSubject() {
@@ -39,7 +42,7 @@ public class ResultSubject {
         }
 
         for (ResultObserver observer : snapshot) {
-            observer.update(result);
+            NOTIFICATION_EXECUTOR.submit(() -> observer.update(result));
         }
     }
 }
