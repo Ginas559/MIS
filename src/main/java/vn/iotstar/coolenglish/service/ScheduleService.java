@@ -13,17 +13,6 @@ public class ScheduleService {
     private final ScheduleDAO scheduleDAO = new ScheduleDAO();
     private final ScheduleConflictService conflictService = new ScheduleConflictService();
 
-    /**
-     * Create a new schedule using the Builder pattern with conflict checking.
-     *
-     * @param scheduleID     unique identifier for schedule
-     * @param createDate     date when schedule is created (java.util.Date)
-     * @param description    optional description
-     * @param sessions       list of sessions to add to schedule
-     * @return created Schedule object
-     * @throws IllegalArgumentException if validation fails
-     * @throws IllegalStateException    if conflict is detected
-     */
     public Schedule createSchedule(String scheduleID, java.util.Date createDate, String description,
                                    List<Session> sessions, EnglishClass linkedClass) {
         ScheduleBuilder builder = new ScheduleBuilder()
@@ -45,24 +34,10 @@ public class ScheduleService {
         return builder.build();
     }
 
-    /**
-     * Save a schedule to the database.
-     *
-     * @param schedule the schedule to save
-     */
     public void saveSchedule(Schedule schedule) {
         scheduleDAO.insert(schedule);
     }
 
-    /**
-     * Create and save schedule in one operation.
-     *
-     * @param scheduleID  unique identifier for schedule
-     * @param createDate  date when schedule is created
-     * @param description optional description
-     * @param sessions    list of sessions
-     * @return saved Schedule object
-     */
     public Schedule createAndSaveSchedule(String scheduleID, java.util.Date createDate, String description,
                                           List<Session> sessions, EnglishClass linkedClass) {
         Schedule schedule = createSchedule(scheduleID, createDate, description, sessions, linkedClass);
@@ -70,39 +45,18 @@ public class ScheduleService {
         return schedule;
     }
 
-    /**
-     * Find schedule by ID.
-     *
-     * @param scheduleID the schedule id
-     * @return Schedule or null if not found
-     */
     public Schedule findSchedule(String scheduleID) {
         return scheduleDAO.findWithSessionsByScheduleID(scheduleID);
     }
 
-    /**
-     * Find all schedules.
-     *
-     * @return list of all schedules
-     */
     public List<Schedule> findAllSchedules() {
         return scheduleDAO.findAllWithEnglishClass();
     }
 
-    /**
-     * Update an existing schedule.
-     *
-     * @param schedule the schedule to update
-     */
     public void updateSchedule(Schedule schedule) {
         scheduleDAO.update(schedule);
     }
 
-    /**
-     * Delete a schedule by ID.
-     *
-     * @param scheduleID the schedule id
-     */
     public void deleteSchedule(String scheduleID) {
         scheduleDAO.delete(scheduleID, Schedule.class);
     }

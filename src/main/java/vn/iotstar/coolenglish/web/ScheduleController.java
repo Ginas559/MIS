@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -16,12 +17,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.iotstar.coolenglish.dao.impl.EnglishClassDAO;
 import vn.iotstar.coolenglish.dao.impl.RoomDAO;
-import vn.iotstar.coolenglish.dao.impl.TeacherDAO;
 import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Room;
 import vn.iotstar.coolenglish.entity.Schedule;
 import vn.iotstar.coolenglish.entity.Session;
-import vn.iotstar.coolenglish.entity.Teacher;
 import vn.iotstar.coolenglish.enums.SessionStatus;
 import vn.iotstar.coolenglish.service.ScheduleService;
 
@@ -39,7 +38,6 @@ public class ScheduleController extends HttpServlet {
     private final ScheduleService scheduleService = new ScheduleService();
     private final EnglishClassDAO englishClassDAO = new EnglishClassDAO();
     private final RoomDAO roomDAO = new RoomDAO();
-    private final TeacherDAO teacherDAO = new TeacherDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -104,11 +102,9 @@ public class ScheduleController extends HttpServlet {
 
     private void showAddForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         List<Room> rooms = roomDAO.findAll(Room.class);
-        List<Teacher> teachers = teacherDAO.findAll(Teacher.class);
         List<EnglishClass> assignableClasses = englishClassDAO.findAssignableForSchedule(null);
 
         req.setAttribute("rooms", rooms);
-        req.setAttribute("teachers", teachers);
         req.setAttribute("assignableClasses", assignableClasses);
         forward(req, resp, "/WEB-INF/views/admin/schedule-form.jsp");
     }
@@ -165,6 +161,7 @@ public class ScheduleController extends HttpServlet {
                     createDate = new Date();
                 }
             }
+            createDate = normalizeDate(createDate);
 
             // Parse sessions from request
             List<Session> sessions = parseSessions(req);
@@ -172,6 +169,14 @@ public class ScheduleController extends HttpServlet {
                 req.setAttribute("error", "At least one session is required");
                 showAddForm(req, resp);
                 return;
+            }
+            validateSessionDates(createDate, sessions);
+
+            // Assign the fixed class teacher to all sessions
+            if (linkedClass.getTeacher() != null) {
+                for (Session session : sessions) {
+                    session.setTeacher(linkedClass.getTeacher());
+                }
             }
 
             // Build and save schedule using service
@@ -203,7 +208,6 @@ public class ScheduleController extends HttpServlet {
         String[] startTimes = req.getParameterValues("startTime[]");
         String[] endTimes = req.getParameterValues("endTime[]");
         String[] roomIDs = req.getParameterValues("roomID[]");
-        String[] teacherIDs = req.getParameterValues("teacherID[]");
 
         if (sessionIDs == null || sessionIDs.length == 0) {
             return sessions;
@@ -261,13 +265,6 @@ public class ScheduleController extends HttpServlet {
                     session.setRoom(room);
                 }
 
-                // Set teacher
-                if (teacherIDs != null && i < teacherIDs.length && teacherIDs[i] != null
-                        && !teacherIDs[i].isEmpty()) {
-                    Teacher teacher = teacherDAO.findById(teacherIDs[i], Teacher.class);
-                    session.setTeacher(teacher);
-                }
-
                 sessions.add(session);
 
             } catch (ParseException e) {
@@ -294,12 +291,10 @@ public class ScheduleController extends HttpServlet {
         }
 
         List<Room> rooms = roomDAO.findAll(Room.class);
-        List<Teacher> teachers = teacherDAO.findAll(Teacher.class);
         List<EnglishClass> assignableClasses = englishClassDAO.findAssignableForSchedule(scheduleID);
 
         req.setAttribute("schedule", schedule);
         req.setAttribute("rooms", rooms);
-        req.setAttribute("teachers", teachers);
         req.setAttribute("assignableClasses", assignableClasses);
         forward(req, resp, "/WEB-INF/views/admin/schedule-form.jsp");
     }
@@ -341,6 +336,7 @@ public class ScheduleController extends HttpServlet {
                     createDate = new Date();
                 }
             }
+            createDate = normalizeDate(createDate);
 
             // Parse sessions from request
             List<Session> sessions = parseSessions(req);
@@ -348,6 +344,14 @@ public class ScheduleController extends HttpServlet {
                 req.setAttribute("error", "At least one session is required");
                 showAddForm(req, resp);
                 return;
+            }
+            validateSessionDates(createDate, sessions);
+
+            // Assign the fixed class teacher to all sessions
+            if (linkedClass.getTeacher() != null) {
+                for (Session session : sessions) {
+                    session.setTeacher(linkedClass.getTeacher());
+                }
             }
 
             // Build and save updated schedule
@@ -390,6 +394,36 @@ public class ScheduleController extends HttpServlet {
             throws ServletException, IOException {
         RequestDispatcher dispatcher = req.getRequestDispatcher(path);
         dispatcher.forward(req, resp);
+    }
+
+    private void validateSessionDates(Date createDate, List<Session> sessions) {
+        if (createDate == null) {
+            return;
+        }
+
+        Calendar minimumSessionDate = Calendar.getInstance();
+        minimumSessionDate.setTime(createDate);
+        minimumSessionDate.add(Calendar.DATE, 1);
+
+        for (Session session : sessions) {
+            if (session.getSessionDate() == null) {
+                throw new IllegalArgumentException("Ngay hoc phai duoc chon cho tung buoi hoc.");
+            }
+            Date normalizedSessionDate = normalizeDate(session.getSessionDate());
+            if (normalizedSessionDate.before(minimumSessionDate.getTime())) {
+                throw new IllegalArgumentException("Ngay hoc phai sau ngay tao lich it nhat 1 ngay.");
+            }
+        }
+    }
+
+    private Date normalizeDate(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
     }
 
     private static String trim(String value) {

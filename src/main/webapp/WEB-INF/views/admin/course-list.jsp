@@ -58,6 +58,7 @@
             <% } %>
             <% if (currentUser != null && currentUser.getRole() == UserRole.TEACHER) { %>
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/teacher/classes">Diem danh</a>
+                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/teacher/classes">Lich day</a>
             <% } %>
             <% if (isStudent) { %>
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/student/schedule">Lich hoc</a>

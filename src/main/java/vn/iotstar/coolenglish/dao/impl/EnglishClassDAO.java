@@ -157,7 +157,8 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
                     "SELECT DISTINCT c FROM EnglishClass c "
                             + "LEFT JOIN FETCH c.course "
                             + "LEFT JOIN FETCH c.schedule s "
-                            + "LEFT JOIN FETCH s.sessions "
+                            + "LEFT JOIN FETCH s.sessions sess "
+                            + "LEFT JOIN FETCH sess.room "
                             + "WHERE c.classID = :classID",
                     EnglishClass.class);
             query.setParameter("classID", classID);
@@ -179,7 +180,8 @@ public class EnglishClassDAO extends AbstractDAO<EnglishClass> {
                     "SELECT DISTINCT c FROM EnglishClass c "
                             + "LEFT JOIN FETCH c.course "
                             + "LEFT JOIN FETCH c.schedule s "
-                            + "LEFT JOIN FETCH s.sessions "
+                            + "LEFT JOIN FETCH s.sessions sess "
+                            + "LEFT JOIN FETCH sess.room "
                             + "LEFT JOIN FETCH c.teacher "
                             + "WHERE c.teacher.id = :tid",
                     EnglishClass.class);

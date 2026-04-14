@@ -79,6 +79,8 @@ public class ScheduleBuilder {
             }
         }
 
+        validateSessionDatesWithinClassPeriod();
+
         validateRoomGapBetweenSessions();
 
         String id = this.scheduleID != null ? this.scheduleID : "SCH-" + System.currentTimeMillis();
@@ -91,12 +93,10 @@ public class ScheduleBuilder {
             }
         }
 
-        // Conflict checker must be supplied by caller (keeps Builder free of DB internals)
         if (conflictChecker == null) {
             throw new IllegalStateException("Cần cung cấp bộ kiểm tra xung đột lịch");
         }
 
-        // Conflict check for each session (room/teacher/time overlap) - exclude this schedule id
         for (Session s : sessions) {
             if (conflictChecker.hasConflict(s, id)) {
                 throw new IllegalStateException("Phát hiện xung đột lịch (phòng hoặc giáo viên) vào ngày " + s.getSessionDate());
@@ -108,7 +108,6 @@ public class ScheduleBuilder {
         schedule.setCreateDate(createDate);
         schedule.setDescription(description);
         schedule.setEnglishClass(englishClass);
-        // attach sessions
         for (Session s : sessions) {
             s.setSchedule(schedule);
         }
@@ -116,6 +115,34 @@ public class ScheduleBuilder {
         schedule.setTotalSessions(sessions.size());
 
         return schedule;
+    }
+
+    private void validateSessionDatesWithinClassPeriod() {
+        if (englishClass == null) {
+            return; 
+        }
+
+        if (englishClass.getStartDate() == null || englishClass.getEndDate() == null) {
+            return; 
+        }
+
+        for (Session session : sessions) {
+            if (session.getSessionDate() == null) {
+                continue;
+            }
+
+            java.time.LocalDate sessionDate = new java.sql.Date(session.getSessionDate().getTime()).toLocalDate();
+
+            if (sessionDate.isBefore(englishClass.getStartDate())) {
+                throw new IllegalArgumentException(
+                    "Buổi học ngày " + sessionDate + " diễn ra trước ngày bắt đầu lớp (" + englishClass.getStartDate() + ")");
+            }
+
+            if (sessionDate.isAfter(englishClass.getEndDate())) {
+                throw new IllegalArgumentException(
+                    "Buổi học ngày " + sessionDate + " diễn ra sau ngày kết thúc lớp (" + englishClass.getEndDate() + ")");
+            }
+        }
     }
 
     private void validateRoomGapBetweenSessions() {
