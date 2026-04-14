@@ -76,7 +76,7 @@ public class LoginController extends HttpServlet {
 
     private String resolveTargetPath(UserAccount account) {
         if (account.getRole() == UserRole.ADMIN || account.getRole() == UserRole.STAFF) {
-            return "/admin/class?msg=login_success";
+            return "/admin/dashboard?msg=login_success";
         }
         return "/course?msg=login_success";
     }

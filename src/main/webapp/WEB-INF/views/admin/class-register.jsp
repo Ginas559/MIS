@@ -36,6 +36,7 @@
 
         <% if (classroom == null) { %>
         <div class="alert alert-warning" role="alert">Khong tim thay lop hoc.</div>
+        <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
         <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/class">Quay lai</a>
         <% } else { %>
         <div class="mb-3">
@@ -61,6 +62,7 @@
 
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-sky" <%= canEnroll ? "" : "disabled" %>>Ghi danh</button>
+                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/class">Quay lai danh sach</a>
             </div>
         </form>

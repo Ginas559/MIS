@@ -20,8 +20,8 @@ class PersistAuditLogCommandTest {
         command.undo();
 
         assertEquals(1, receiver.saveCallCount);
-        assertEquals(1, receiver.deleteCallCount);
-        assertEquals(1L, receiver.deletedId);
+        assertEquals(1, receiver.undoEntryCallCount);
+        assertEquals(1L, receiver.undoTargetId);
     }
 
     @Test
@@ -39,7 +39,7 @@ class PersistAuditLogCommandTest {
 
         assertTrue(undone);
         assertEquals(0, invoker.historySize());
-        assertEquals(1, receiver.deleteCallCount);
+        assertEquals(1, receiver.undoEntryCallCount);
     }
 
     @Test
@@ -69,8 +69,8 @@ class PersistAuditLogCommandTest {
     private static final class InMemoryAuditLogReceiver extends AuditLogReceiver {
 
         private int saveCallCount;
-        private int deleteCallCount;
-        private Long deletedId;
+        private int undoEntryCallCount;
+        private Long undoTargetId;
 
         @Override
         public Long save(AuditLog auditLog) {
@@ -79,9 +79,9 @@ class PersistAuditLogCommandTest {
         }
 
         @Override
-        public void deleteById(Long auditId) {
-            deleteCallCount++;
-            deletedId = auditId;
+        public void appendUndoEntry(Long targetAuditId) {
+            undoEntryCallCount++;
+            undoTargetId = targetAuditId;
         }
     }
 }

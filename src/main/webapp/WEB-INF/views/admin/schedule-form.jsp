@@ -80,6 +80,7 @@
         <a class="app-brand" href="${pageContext.request.contextPath}/index.jsp">CoolEnglish</a>
         <div class="d-flex gap-2">
             <% if (canManage) { %>
+            <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/course">Quan ly khoa hoc</a>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/room">Quan ly phong hoc</a>
             <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/class">Quan ly lop hoc</a>
@@ -101,7 +102,10 @@
                 <h1 class="h4 app-title mb-1"><%= isEditMode ? "Sua lich hoc" : "Tao lich hoc moi" %></h1>
                 <p class="app-subtle mb-0"><%= isEditMode ? "Cap nhat thong tin lich hoc" : "Nhap thong tin lich cac buoi hoc de kiem tra trung lich phong/giao vien" %></p>
             </div>
-            <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/schedule">Quay ve</a>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
+                <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/admin/schedule">Quay ve</a>
+            </div>
         </div>
 
         <!-- Messages -->

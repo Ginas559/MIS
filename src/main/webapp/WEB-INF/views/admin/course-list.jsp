@@ -42,6 +42,7 @@
         <a class="app-brand" href="${pageContext.request.contextPath}/index.jsp">CoolEnglish</a>
         <div class="d-flex gap-2 align-items-center">
             <% if (canManage) { %>
+                <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
                 <a class="btn btn-outline-sky" href="${pageContext.request.contextPath}/admin/course">Quan ly khoa hoc</a>
                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/room">Quan ly phong hoc</a>
                 <a class="btn btn-outline-dark" href="${pageContext.request.contextPath}/admin/class">Quan ly lop hoc</a>

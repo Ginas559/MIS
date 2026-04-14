@@ -17,7 +17,10 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h4 app-title mb-0">Xac nhan thanh toan tien mat</h1>
-        <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/course">Ve quan ly khoa hoc</a>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/dashboard">Bảng điều khiển</a>
+            <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/course">Ve quan ly khoa hoc</a>
+        </div>
     </div>
 
     <% if ("confirm_success".equals(msg)) { %>
