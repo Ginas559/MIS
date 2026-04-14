@@ -3,6 +3,8 @@
 <%@ page import="vn.iotstar.coolenglish.entity.EnglishClass" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Enrollment" %>
 <%@ page import="vn.iotstar.coolenglish.entity.ExamResult" %>
+<%@ page import="vn.iotstar.coolenglish.enums.GradingSystem" %>
+<%@ page import="vn.iotstar.coolenglish.enums.SkillType" %>
 <%
     List<EnglishClass> classes = (List<EnglishClass>) request.getAttribute("classes");
     EnglishClass selectedClass = (EnglishClass) request.getAttribute("selectedClass");
@@ -18,6 +20,8 @@
     String error = (String) request.getAttribute("error");
     String dashboardPath = (String) request.getAttribute("dashboardPath");
     boolean isTeacherView = Boolean.TRUE.equals(request.getAttribute("isTeacherView"));
+    GradingSystem[] gradingSystems = (GradingSystem[]) request.getAttribute("gradingSystems");
+    SkillType[] skillTypes = (SkillType[]) request.getAttribute("skillTypes");
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -113,28 +117,24 @@
                             <label class="form-label">He diem bai test</label>
                             <select name="examFormat" class="form-select" required>
                                 <option value="">-- Chon he diem --</option>
-                                <option value="TOEIC">TOEIC</option>
-                                <option value="IELTS">IELTS</option>
+                                <% if (gradingSystems != null) {
+                                    for (GradingSystem gradingSystem : gradingSystems) { %>
+                                <option value="<%= gradingSystem.name() %>"><%= gradingSystem.name() %></option>
+                                <% }} %>
                             </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label d-block">Ky nang ap dung</label>
+                            <% if (skillTypes != null) {
+                                for (SkillType skillType : skillTypes) {
+                                    String skillName = skillType.name().substring(0, 1) + skillType.name().substring(1).toLowerCase();
+                                    String inputName = "has" + skillName;
+                            %>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="hasListening" id="hasListening">
-                                <label class="form-check-label" for="hasListening">Listening</label>
+                                <input class="form-check-input" type="checkbox" name="<%= inputName %>" id="<%= inputName %>">
+                                <label class="form-check-label" for="<%= inputName %>"><%= skillName %></label>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="hasReading" id="hasReading">
-                                <label class="form-check-label" for="hasReading">Reading</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="hasSpeaking" id="hasSpeaking">
-                                <label class="form-check-label" for="hasSpeaking">Speaking</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="hasWriting" id="hasWriting">
-                                <label class="form-check-label" for="hasWriting">Writing</label>
-                            </div>
+                            <% }} %>
                             <div class="form-text">
                                 Bang diem se luon hien du 4 cot ky nang. Ky nang khong co trong bai test se hien 0.
                             </div>
@@ -218,7 +218,7 @@
                     </div>
                 </div>
                 <span class="app-subtle">
-                    <%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat())
+                    <%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat())
                             ? "IELTS nhap band score tung ky nang"
                             : "TOEIC nhap so cau dung/phan dung, he thong tu quy doi ra diem TOEIC" %>
                 </span>
@@ -232,10 +232,10 @@
                         <tr>
                             <th>Hoc sinh</th>
                             <th>Email</th>
-                            <th><%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "Listening" : "Listening (0-100)" %></th>
-                            <th><%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "Reading" : "Reading (0-100)" %></th>
-                            <th><%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "Speaking" : "Speaking (0-11)" %></th>
-                            <th><%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "Writing" : "Writing (0-8)" %></th>
+                            <th><%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "Listening" : "Listening (0-100)" %></th>
+                            <th><%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "Reading" : "Reading (0-100)" %></th>
+                            <th><%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "Speaking" : "Speaking (0-11)" %></th>
+                            <th><%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "Writing" : "Writing (0-8)" %></th>
                             <th>Diem tong</th>
                         </tr>
                         </thead>
@@ -265,8 +265,8 @@
                                 <% if (selectedTestSummary.usesListening()) { %>
                                 <input type="number" name="listeningScore" class="form-control"
                                        min="0" max="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "9" : "100" %>"
-                                       step="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "0.5" : "1" %>"
-                                       value="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat())
+                                       step="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "0.5" : "1" %>"
+                                       value="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat())
                                                ? (result.getListeningScore() == null ? "" : result.getListeningScore())
                                                : (result.getListeningInputValue() == null ? "" : result.getListeningInputValue()) %>">
                                 <% } else { %>
@@ -276,9 +276,9 @@
                             <td style="width: 140px;">
                                 <% if (selectedTestSummary.usesReading()) { %>
                                 <input type="number" name="readingScore" class="form-control"
-                                       min="0" max="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "9" : "100" %>"
-                                       step="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "0.5" : "1" %>"
-                                       value="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat())
+                                       min="0" max="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "9" : "100" %>"
+                                       step="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "0.5" : "1" %>"
+                                       value="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat())
                                                ? (result.getReadingScore() == null ? "" : result.getReadingScore())
                                                : (result.getReadingInputValue() == null ? "" : result.getReadingInputValue()) %>">
                                 <% } else { %>
@@ -288,9 +288,9 @@
                             <td style="width: 140px;">
                                 <% if (selectedTestSummary.usesSpeaking()) { %>
                                 <input type="number" name="speakingScore" class="form-control"
-                                       min="0" max="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "9" : "11" %>"
-                                       step="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "0.5" : "1" %>"
-                                       value="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat())
+                                       min="0" max="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "9" : "11" %>"
+                                       step="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "0.5" : "1" %>"
+                                       value="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat())
                                                ? (result.getSpeakingScore() == null ? "" : result.getSpeakingScore())
                                                : (result.getSpeakingInputValue() == null ? "" : result.getSpeakingInputValue()) %>">
                                 <% } else { %>
@@ -300,9 +300,9 @@
                             <td style="width: 140px;">
                                 <% if (selectedTestSummary.usesWriting()) { %>
                                 <input type="number" name="writingScore" class="form-control"
-                                       min="0" max="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "9" : "8" %>"
-                                       step="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "0.5" : "1" %>"
-                                       value="<%= "IELTS".equalsIgnoreCase(selectedTestSummary.getExamFormat())
+                                       min="0" max="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "9" : "8" %>"
+                                       step="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat()) ? "0.5" : "1" %>"
+                                       value="<%= GradingSystem.IELTS.name().equalsIgnoreCase(selectedTestSummary.getExamFormat())
                                                ? (result.getWritingScore() == null ? "" : result.getWritingScore())
                                                : (result.getWritingInputValue() == null ? "" : result.getWritingInputValue()) %>">
                                 <% } else { %>
