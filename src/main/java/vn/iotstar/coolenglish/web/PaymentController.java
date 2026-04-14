@@ -156,7 +156,7 @@ public class PaymentController extends HttpServlet {
             if (course == null || course.getFee() == null || course.getFee() <= 0) {
                 throw new IllegalStateException("Khoa hoc khong hop le de thanh toan.");
             }
-            Payment payment = paymentService.createAndPay(course.getFee(), method, clazz.getClassID(), user.getEmail());
+            Payment payment = paymentService.createAndPay(course.getFee(), method, courseID, user.getEmail());
 
             req.setAttribute("course", course);
             req.setAttribute("classroom", clazz);

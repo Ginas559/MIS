@@ -5,13 +5,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import vn.iotstar.coolenglish.dao.impl.CourseDAO;
+import vn.iotstar.coolenglish.dao.impl.EnglishClassDAO;
 import vn.iotstar.coolenglish.dao.impl.InvoiceDAO;
 import vn.iotstar.coolenglish.dao.impl.PaymentDAO;
+import vn.iotstar.coolenglish.dao.impl.StudentDAO;
+import vn.iotstar.coolenglish.dao.impl.UserAccountDAO;
+import vn.iotstar.coolenglish.entity.Course;
+import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Invoice;
 import vn.iotstar.coolenglish.entity.Payment;
+import vn.iotstar.coolenglish.entity.Student;
+import vn.iotstar.coolenglish.entity.UserAccount;
 import vn.iotstar.coolenglish.enums.InvoiceStatus;
 import vn.iotstar.coolenglish.enums.PaymentMethod;
 import vn.iotstar.coolenglish.enums.PaymentStatus;
+import vn.iotstar.coolenglish.enums.StudentStatus;
+import vn.iotstar.coolenglish.enums.UserRole;
 import vn.iotstar.coolenglish.facade.EnrollmentFacade;
 import vn.iotstar.coolenglish.payment.PaymentProcessor;
 import vn.iotstar.coolenglish.payment.PaymentStrategy;
@@ -20,31 +30,40 @@ public class PaymentService {
 
     private final PaymentDAO paymentDAO = new PaymentDAO();
     private final InvoiceDAO invoiceDAO = new InvoiceDAO();
+    private final CourseDAO courseDAO = new CourseDAO();
+    private final EnglishClassDAO classDAO = new EnglishClassDAO();
+    private final StudentDAO studentDAO = new StudentDAO();
+    private final UserAccountDAO userAccountDAO = new UserAccountDAO();
     private final PaymentProcessor paymentProcessor = new PaymentProcessor();
 
-    public Payment createAndPay(Double amount, PaymentMethod method, String classID, String studentEmail) {
+    public Payment createAndPay(Double amount, PaymentMethod method, String courseID, String studentEmail) {
         if (amount == null || amount <= 0) {
             throw new IllegalArgumentException("Payment amount must be greater than 0.");
         }
         if (method == null) {
             throw new IllegalArgumentException("Payment method is required.");
         }
-        if (classID == null || classID.isBlank() || studentEmail == null || studentEmail.isBlank()) {
-            throw new IllegalArgumentException("classID and studentEmail are required.");
+        if (courseID == null || courseID.isBlank() || studentEmail == null || studentEmail.isBlank()) {
+            throw new IllegalArgumentException("courseID and studentEmail are required.");
         }
 
         Invoice invoice = createPendingInvoice(amount);
+        Course course = courseDAO.findById(courseID, Course.class);
+        if (course == null) {
+            throw new IllegalArgumentException("Course not found: " + courseID);
+        }
+        Student student = resolveOrCreateStudentByEmail(studentEmail);
 
         Payment payment = new Payment();
         payment.setPaymentID(generatePaymentId());
         payment.setInvoice(invoice);
+        payment.setCourse(course);
+        payment.setStudent(student);
         payment.setAmount(amount);
         payment.setMethod(method.name());
         payment.setTransactionRef(generateTransactionRef(method));
         payment.setPaymentDate(LocalDateTime.now());
         payment.setStatus(PaymentStatus.PENDING);
-        payment.setClassID(classID);
-        payment.setStudentEmail(studentEmail);
         paymentDAO.insert(payment);
 
         PaymentStrategy strategy = paymentProcessor.getStrategy(method);
@@ -171,13 +190,22 @@ public class PaymentService {
         if (payment.getStatus() != PaymentStatus.COMPLETED) {
             return;
         }
-        String classID = payment.getClassID();
-        String studentEmail = payment.getStudentEmail();
-        if (classID == null || classID.isBlank() || studentEmail == null || studentEmail.isBlank()) {
+        Course course = payment.getCourse();
+        Student student = payment.getStudent();
+        String courseID = course == null ? null : course.getCourseID();
+        String studentEmail = student == null ? null : student.getEmail();
+        if (courseID == null || courseID.isBlank() || studentEmail == null || studentEmail.isBlank()) {
+            return;
+        }
+        EnglishClass clazz = classDAO.findFirstOpenClassByCourseID(courseID);
+        if (clazz == null) {
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setNote("Payment done but enrollment failed: Khong tim thay lop OPEN cho khoa hoc.");
             return;
         }
         try {
-            EnrollmentFacade.EnrollmentResult result = EnrollmentFacade.getInstance().enrollStudent(classID, studentEmail);
+            EnrollmentFacade.EnrollmentResult result = EnrollmentFacade.getInstance()
+                    .enrollStudent(clazz.getClassID(), studentEmail);
             if (result != null && result.getInvoice() != null) {
                 payment.setInvoice(result.getInvoice());
                 payment.setNote("Payment completed and enrollment created.");
@@ -206,5 +234,36 @@ public class PaymentService {
     private String generatePaymentId() {
         return "PAY-" + System.currentTimeMillis() + "-"
                 + UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+    }
+
+    private Student resolveOrCreateStudentByEmail(String email) {
+        Student existingStudent = studentDAO.findByEmail(email);
+        if (existingStudent != null) {
+            return existingStudent;
+        }
+
+        UserAccount account = userAccountDAO.findByEmail(email);
+        if (account == null || account.getRole() != UserRole.STUDENT) {
+            throw new IllegalArgumentException("Khong tim thay hoc vien voi email: " + email);
+        }
+
+        if (account.getRelatedID() != null) {
+            Student linkedStudent = studentDAO.findById(account.getRelatedID(), Student.class);
+            if (linkedStudent != null) {
+                return linkedStudent;
+            }
+        }
+
+        Student student = new Student();
+        String username = account.getUsername();
+        student.setFullName(username == null || username.isBlank() ? account.getEmail() : username);
+        student.setEmail(account.getEmail());
+        student.setStudentID("STU-" + System.currentTimeMillis());
+        student.setStatus(StudentStatus.ACTIVE);
+        studentDAO.insert(student);
+
+        account.setRelatedID(student.getId());
+        userAccountDAO.update(account);
+        return student;
     }
 }

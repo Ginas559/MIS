@@ -7,13 +7,20 @@ import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
+import vn.iotstar.coolenglish.enums.GradingSystem;
+import vn.iotstar.coolenglish.enums.SkillType;
+import vn.iotstar.coolenglish.enums.UserRole;
 
 @Entity
 @Table(name = "ExamResults")
@@ -44,6 +51,14 @@ public class ExamResult implements Serializable {
     @Column(name = "testType", length = 100)
     private String testType;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gradingSystem", length = 20)
+    private GradingSystem gradingSystem;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "skill", length = 20)
+    private SkillType skill;
+
     @Column(name = "examFormat", length = 30)
     private String examFormat;
 
@@ -52,6 +67,14 @@ public class ExamResult implements Serializable {
 
     @Column(name = "score")
     private Double score;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "createdByRole", length = 20)
+    private UserRole createdByRole;
+
+    @ManyToOne
+    @JoinColumn(name = "enrollment_id", referencedColumnName = "id")
+    private Enrollment enrollment;
 
     @Column(name = "hasListening")
     private Boolean hasListening = Boolean.FALSE;
@@ -120,7 +143,28 @@ public class ExamResult implements Serializable {
         }
         syncedAt = LocalDateTime.now();
         normalizeSkills();
+        syncAliases();
         syncCalculatedFields();
+    }
+
+    private void syncAliases() {
+        if (gradingSystem == null && examFormat != null) {
+            gradingSystem = parseGradingSystem(examFormat);
+        }
+        if (examFormat == null && gradingSystem != null) {
+            examFormat = gradingSystem.name();
+        }
+    }
+
+    private GradingSystem parseGradingSystem(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return GradingSystem.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
     public String calculateGrade() {
@@ -386,6 +430,24 @@ public class ExamResult implements Serializable {
         this.testType = testType;
     }
 
+    public GradingSystem getGradingSystem() {
+        return gradingSystem;
+    }
+
+    public void setGradingSystem(GradingSystem gradingSystem) {
+        this.gradingSystem = gradingSystem;
+        this.examFormat = gradingSystem == null ? null : gradingSystem.name();
+        syncCalculatedFields();
+    }
+
+    public SkillType getSkill() {
+        return skill;
+    }
+
+    public void setSkill(SkillType skill) {
+        this.skill = skill;
+    }
+
     public String getGrade() {
         return grade;
     }
@@ -497,7 +559,24 @@ public class ExamResult implements Serializable {
 
     public void setExamFormat(String examFormat) {
         this.examFormat = examFormat;
+        this.gradingSystem = parseGradingSystem(examFormat);
         syncCalculatedFields();
+    }
+
+    public UserRole getCreatedByRole() {
+        return createdByRole;
+    }
+
+    public void setCreatedByRole(UserRole createdByRole) {
+        this.createdByRole = createdByRole;
+    }
+
+    public Enrollment getEnrollment() {
+        return enrollment;
+    }
+
+    public void setEnrollment(Enrollment enrollment) {
+        this.enrollment = enrollment;
     }
 
     public Boolean getHasListening() {

@@ -86,10 +86,7 @@ public class DashboardFacade {
             return previews;
         }
 
-        List<Payment> payments = paymentDAO.findAll(Payment.class);
-        payments.sort(Comparator
-                .comparing(Payment::getPaymentDate, Comparator.nullsLast(Comparator.reverseOrder()))
-                .thenComparing(Payment::getPaymentID, Comparator.nullsLast(Comparator.reverseOrder())));
+        List<Payment> payments = paymentDAO.findCompletedPaymentsWithContext();
 
         for (Payment payment : payments) {
             if (previews.size() >= limit) {
@@ -98,16 +95,17 @@ public class DashboardFacade {
             if (payment.getStatus() != PaymentStatus.COMPLETED) {
                 continue;
             }
-            if (isBlank(payment.getTransactionRef()) || isBlank(payment.getStudentEmail())) {
+            String studentEmail = payment.getStudent() == null ? null : payment.getStudent().getEmail();
+            if (isBlank(payment.getTransactionRef()) || isBlank(studentEmail)) {
                 continue;
             }
             try {
                 InvoiceDocument invoiceDoc = studentInvoiceService.buildForStudent(
                         payment.getTransactionRef(),
-                        payment.getStudentEmail());
+                        studentEmail);
                 previews.add(new InvoicePreview(
                         payment.getTransactionRef(),
-                        payment.getStudentEmail(),
+                        studentEmail,
                         invoiceDoc.getInvoiceNumber(),
                         invoiceDoc.getClassSection().getClassId(),
                         invoiceDoc.getClassSection().getClassName(),

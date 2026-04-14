@@ -28,6 +28,14 @@ public class Payment implements Serializable {
     @JoinColumn(name = "invoice_id", referencedColumnName = "id", nullable = true)
     private Invoice invoice;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "studentEmail", referencedColumnName = "email")
+    private Student student;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "classID", referencedColumnName = "courseID")
+    private Course course;
+
     @Column(name = "amount", nullable = false)
     private Double amount;
 
@@ -50,12 +58,6 @@ public class Payment implements Serializable {
     @Column(name = "note", length = 500)
     private String note;
 
-    @Column(name = "classID", length = 50)
-    private String classID;
-
-    @Column(name = "studentEmail", length = 100)
-    private String studentEmail;
-
     public Payment() {
         this.paymentDate = LocalDateTime.now();
         this.status = PaymentStatus.PENDING;
@@ -75,6 +77,22 @@ public class Payment implements Serializable {
 
     public void setInvoice(Invoice invoice) {
         this.invoice = invoice;
+    }
+
+    public Student getStudent() {
+        return student;
+    }
+
+    public void setStudent(Student student) {
+        this.student = student;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
     }
 
     public Double getAmount() {
@@ -131,21 +149,5 @@ public class Payment implements Serializable {
 
     public void setNote(String note) {
         this.note = note;
-    }
-
-    public String getClassID() {
-        return classID;
-    }
-
-    public void setClassID(String classID) {
-        this.classID = classID;
-    }
-
-    public String getStudentEmail() {
-        return studentEmail;
-    }
-
-    public void setStudentEmail(String studentEmail) {
-        this.studentEmail = studentEmail;
     }
 }

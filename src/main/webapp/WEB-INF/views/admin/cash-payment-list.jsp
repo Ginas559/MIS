@@ -38,7 +38,7 @@
                 <th>Payment ID</th>
                 <th>Txn Ref</th>
                 <th>Hoc vien</th>
-                <th>Lop hoc</th>
+                <th>Khoa hoc</th>
                 <th>So tien</th>
                 <th>Ngay tao</th>
                 <th>Thao tac</th>
@@ -52,8 +52,8 @@
             <tr>
                 <td><%= payment.getPaymentID() %></td>
                 <td><%= payment.getTransactionRef() %></td>
-                <td><%= payment.getStudentEmail() %></td>
-                <td><%= payment.getClassID() %></td>
+                <td><%= payment.getStudent() == null ? "--" : payment.getStudent().getEmail() %></td>
+                <td><%= payment.getCourse() == null ? "--" : payment.getCourse().getCourseID() %></td>
                 <td><%= payment.getAmount() %></td>
                 <td><%= payment.getPaymentDate() %></td>
                 <td class="d-flex gap-2">

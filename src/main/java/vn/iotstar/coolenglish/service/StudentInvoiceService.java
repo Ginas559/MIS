@@ -7,7 +7,6 @@ import java.util.Objects;
 
 import vn.iotstar.coolenglish.dao.impl.EnglishClassDAO;
 import vn.iotstar.coolenglish.dao.impl.PaymentDAO;
-import vn.iotstar.coolenglish.dao.impl.StudentDAO;
 import vn.iotstar.coolenglish.entity.Course;
 import vn.iotstar.coolenglish.entity.EnglishClass;
 import vn.iotstar.coolenglish.entity.Enrollment;
@@ -36,7 +35,6 @@ public class StudentInvoiceService {
 
     private final PaymentDAO paymentDAO = new PaymentDAO();
     private final EnglishClassDAO englishClassDAO = new EnglishClassDAO();
-    private final StudentDAO studentDAO = new StudentDAO();
 
     public InvoiceDocument buildForStudent(String transactionRef, String studentEmail) {
         Objects.requireNonNull(transactionRef, "transactionRef");
@@ -45,7 +43,9 @@ public class StudentInvoiceService {
         if (payment == null) {
             throw new IllegalArgumentException("Khong tim thay giao dich.");
         }
-        if (!studentEmail.trim().equalsIgnoreCase(trim(payment.getStudentEmail()))) {
+        Student paymentStudent = payment.getStudent();
+        String paymentStudentEmail = paymentStudent == null ? null : trim(paymentStudent.getEmail());
+        if (paymentStudentEmail == null || !studentEmail.trim().equalsIgnoreCase(paymentStudentEmail)) {
             throw new SecurityException("Ban khong co quyen xem hoa don nay.");
         }
         if (payment.getStatus() != PaymentStatus.COMPLETED) {
@@ -62,7 +62,7 @@ public class StudentInvoiceService {
 
         EnglishClass clazz = resolveClass(payment, invoice);
         Student student = resolveStudent(payment, invoice);
-        Course course = clazz != null && clazz.getCourse() != null ? clazz.getCourse() : null;
+        Course course = clazz != null && clazz.getCourse() != null ? clazz.getCourse() : payment.getCourse();
 
         ClassEnrollmentSection classSection = buildClassSection(clazz, course);
         BuyerInfo buyer = buildBuyer(student, payment);
@@ -117,9 +117,13 @@ public class StudentInvoiceService {
         if (enrollment != null && enrollment.getEnglishClass() != null) {
             return enrollment.getEnglishClass();
         }
-        String classId = payment.getClassID();
-        if (classId != null && !classId.isBlank()) {
-            return englishClassDAO.findByClassIdWithInvoiceRelations(classId.trim());
+        Course course = payment.getCourse();
+        String courseId = course == null ? null : course.getCourseID();
+        if (courseId != null && !courseId.isBlank()) {
+            EnglishClass clazz = englishClassDAO.findFirstOpenClassByCourseID(courseId.trim());
+            if (clazz != null) {
+                return englishClassDAO.findByClassIdWithInvoiceRelations(clazz.getClassID());
+            }
         }
         return null;
     }
@@ -129,11 +133,7 @@ public class StudentInvoiceService {
         if (enrollment != null && enrollment.getStudent() != null) {
             return enrollment.getStudent();
         }
-        String email = payment.getStudentEmail();
-        if (email != null && !email.isBlank()) {
-            return studentDAO.findByEmail(email.trim());
-        }
-        return null;
+        return payment.getStudent();
     }
 
     private ClassEnrollmentSection buildClassSection(EnglishClass clazz, Course course) {
@@ -196,13 +196,13 @@ public class StudentInvoiceService {
         if (student != null) {
             return new BuyerInfo(
                     nzStr(student.getFullName(), "Học viên"),
-                    nzStr(student.getEmail(), trim(payment.getStudentEmail())),
+                    nzStr(student.getEmail(), trim(payment.getStudent() == null ? null : payment.getStudent().getEmail())),
                     student.getPhone() != null ? student.getPhone() : "—",
                     student.getStudentID() != null ? student.getStudentID() : "—");
         }
         return new BuyerInfo(
                 "Học viên",
-                trim(payment.getStudentEmail()),
+                trim(payment.getStudent() == null ? null : payment.getStudent().getEmail()),
                 "—",
                 "—");
     }
