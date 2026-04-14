@@ -5,7 +5,6 @@
 <%@ page import="vn.iotstar.coolenglish.entity.Enrollment" %>
 <%@ page import="vn.iotstar.coolenglish.entity.EnglishClass" %>
 <%@ page import="vn.iotstar.coolenglish.entity.ExamResult" %>
-<%@ page import="vn.iotstar.coolenglish.entity.Room" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Schedule" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Session" %>
 <%@ page import="vn.iotstar.coolenglish.entity.Student" %>
@@ -63,7 +62,7 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h1 class="h4 app-title mb-1">Lich hoc cua toi</h1>
-                <p class="app-subtle mb-0">Xem lich hoc tung lop, phong hoc, giao vien va danh sach cac buoi hoc.</p>
+                <p class="app-subtle mb-0">Xem lich hoc tung lop, giao vien va danh sach cac buoi hoc.</p>
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 <a class="btn btn-outline-secondary btn-sm" href="${pageContext.request.contextPath}/course">Danh sach khoa hoc</a>
@@ -102,7 +101,7 @@
             <strong>Lich hoc tong hop</strong>
         </div>
         <div class="card-body small">
-            Trang nay hien thi toan bo lich hoc cua cac lop ban da ghi danh, bao gom khoa hoc, giao vien, phong hoc va cac buoi hoc chi tiet.
+            Trang nay hien thi toan bo lich hoc cua cac lop ban da ghi danh, bao gom khoa hoc, giao vien va cac buoi hoc chi tiet.
         </div>
     </div>
 
@@ -118,7 +117,6 @@
                         <th>Lop hoc</th>
                         <th>Khoa hoc</th>
                         <th>Giao vien</th>
-                        <th>Phong hoc</th>
                         <th>Thoi gian khoa hoc</th>
                         <th>Chi tiet buoi hoc</th>
                         <th>So bai test</th>
@@ -130,7 +128,6 @@
                         for (Enrollment enrollment : enrollments) {
                             EnglishClass englishClass = enrollment.getEnglishClass();
                             Course course = englishClass != null ? englishClass.getCourse() : null;
-                            Room room = englishClass != null ? englishClass.getRoom() : null;
                             Teacher teacher = englishClass != null ? englishClass.getTeacher() : null;
                             Schedule schedule = englishClass != null ? englishClass.getSchedule() : null;
                             List<ExamResult> classResults = resultsByClassID == null || englishClass == null
@@ -148,10 +145,6 @@
                         </td>
                         <td><%= teacher == null ? "--" : teacher.getFullName() %></td>
                         <td>
-                            <div><%= room == null ? "--" : room.getRoomName() %></div>
-                            <div class="text-muted"><%= room == null || room.getLocation() == null ? "--" : room.getLocation() %></div>
-                        </td>
-                        <td>
                             <%= englishClass == null || englishClass.getStartDate() == null ? "--" : englishClass.getStartDate() %>
                             <br>
                             <span class="text-muted">den <%= englishClass == null || englishClass.getEndDate() == null ? "--" : englishClass.getEndDate() %></span>
@@ -168,10 +161,6 @@
                                         -
                                         <%= sessionItem.getEndTime() == null ? "--" : sessionItem.getEndTime() %>
                                     </div>
-                                    <div class="text-muted">
-                                        Phong:
-                                        <%= sessionItem.getRoom() == null ? (room == null ? "--" : room.getRoomName()) : sessionItem.getRoom().getRoomName() %>
-                                    </div>
                                 </div>
                                 <% } %>
                             <% } else { %>
@@ -183,7 +172,7 @@
                     </tr>
                     <% }} else { %>
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">Ban chua ghi danh lop hoc nao.</td>
+                        <td colspan="7" class="text-center text-muted py-4">Ban chua ghi danh lop hoc nao.</td>
                     </tr>
                     <% } %>
                 </tbody>

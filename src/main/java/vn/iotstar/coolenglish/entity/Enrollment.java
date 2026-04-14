@@ -2,6 +2,7 @@ package vn.iotstar.coolenglish.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +16,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import vn.iotstar.coolenglish.audit.listener.AuditEntityListener;
 import vn.iotstar.coolenglish.enums.EnrollmentStatus;
 
@@ -46,12 +51,20 @@ public class Enrollment implements Serializable {
     @Column(name = "status", length = 20, nullable = false)
     private EnrollmentStatus status;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "enrollmentDate")
+    private Date enrollmentDate;
+
     @Column(name = "enrolledAt", nullable = false)
     private LocalDateTime enrolledAt;
+
+    @Column(name = "note", length = 500)
+    private String note;
 
     public Enrollment() {
         this.status = EnrollmentStatus.ENROLLED;
         this.enrolledAt = LocalDateTime.now();
+        this.enrollmentDate = new Date();
     }
 
     public Enrollment(EnglishClass englishClass, Student student, EnrollmentStatus status, LocalDateTime enrolledAt) {
@@ -59,6 +72,18 @@ public class Enrollment implements Serializable {
         this.student = student;
         this.status = status;
         this.enrolledAt = enrolledAt;
+        this.enrollmentDate = enrolledAt == null ? null : java.sql.Timestamp.valueOf(enrolledAt);
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void syncEnrollmentFields() {
+        if (enrollmentDate == null && enrolledAt != null) {
+            enrollmentDate = java.sql.Timestamp.valueOf(enrolledAt);
+        }
+        if (enrolledAt == null && enrollmentDate != null) {
+            enrolledAt = LocalDateTime.ofInstant(enrollmentDate.toInstant(), java.time.ZoneId.systemDefault());
+        }
     }
 
     public Long getId() {
@@ -107,6 +132,28 @@ public class Enrollment implements Serializable {
 
     public void setEnrolledAt(LocalDateTime enrolledAt) {
         this.enrolledAt = enrolledAt;
+        this.enrollmentDate = enrolledAt == null ? null : java.sql.Timestamp.valueOf(enrolledAt);
+    }
+
+    public Date getEnrollmentDate() {
+        return enrollmentDate;
+    }
+
+    public void setEnrollmentDate(Date enrollmentDate) {
+        this.enrollmentDate = enrollmentDate;
+        if (enrollmentDate == null) {
+            this.enrolledAt = null;
+            return;
+        }
+        this.enrolledAt = LocalDateTime.ofInstant(enrollmentDate.toInstant(), java.time.ZoneId.systemDefault());
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }
 

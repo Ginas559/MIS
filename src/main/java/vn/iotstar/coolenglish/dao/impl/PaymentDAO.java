@@ -31,7 +31,11 @@ public class PaymentDAO extends AbstractDAO<Payment> {
     public Payment findByTransactionRefWithInvoice(String transactionRef) {
         try (EntityManager em = JPAUtil.getEntityManager()) {
             TypedQuery<Payment> query = em.createQuery(
-                    "SELECT p FROM Payment p LEFT JOIN FETCH p.invoice WHERE p.transactionRef = :transactionRef",
+                    "SELECT p FROM Payment p "
+                            + "LEFT JOIN FETCH p.invoice "
+                            + "LEFT JOIN FETCH p.student "
+                            + "LEFT JOIN FETCH p.course "
+                            + "WHERE p.transactionRef = :transactionRef",
                     Payment.class);
             query.setParameter("transactionRef", transactionRef);
             java.util.List<Payment> results = query.getResultList();
@@ -47,10 +51,14 @@ public class PaymentDAO extends AbstractDAO<Payment> {
             TypedQuery<Payment> query = em.createQuery(
                     "SELECT DISTINCT p FROM Payment p "
                             + "LEFT JOIN FETCH p.invoice i "
+                            + "LEFT JOIN FETCH p.student "
+                            + "LEFT JOIN FETCH p.course "
                             + "LEFT JOIN FETCH i.enrollment e "
                             + "LEFT JOIN FETCH e.englishClass c "
                             + "LEFT JOIN FETCH c.course "
-                            + "LEFT JOIN FETCH c.schedule "
+                            + "LEFT JOIN FETCH c.schedule sch "
+                            + "LEFT JOIN FETCH sch.sessions sess "
+                            + "LEFT JOIN FETCH sess.room "
                             + "LEFT JOIN FETCH e.student s "
                             + "WHERE p.transactionRef = :transactionRef",
                     Payment.class);
@@ -63,11 +71,28 @@ public class PaymentDAO extends AbstractDAO<Payment> {
     public List<Payment> findPendingCashPayments() {
         try (EntityManager em = JPAUtil.getEntityManager()) {
             TypedQuery<Payment> query = em.createQuery(
-                    "SELECT p FROM Payment p LEFT JOIN FETCH p.invoice "
+                    "SELECT p FROM Payment p "
+                            + "LEFT JOIN FETCH p.invoice "
+                            + "LEFT JOIN FETCH p.student "
+                            + "LEFT JOIN FETCH p.course "
                             + "WHERE p.method = :method AND p.status = :status ORDER BY p.paymentDate DESC",
                     Payment.class);
             query.setParameter("method", "CASH");
             query.setParameter("status", PaymentStatus.PENDING);
+            return query.getResultList();
+        }
+    }
+
+    public List<Payment> findCompletedPaymentsWithContext() {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
+            TypedQuery<Payment> query = em.createQuery(
+                    "SELECT DISTINCT p FROM Payment p "
+                            + "LEFT JOIN FETCH p.invoice "
+                            + "LEFT JOIN FETCH p.student "
+                            + "LEFT JOIN FETCH p.course "
+                            + "WHERE p.status = :status ORDER BY p.paymentDate DESC",
+                    Payment.class);
+            query.setParameter("status", PaymentStatus.COMPLETED);
             return query.getResultList();
         }
     }
