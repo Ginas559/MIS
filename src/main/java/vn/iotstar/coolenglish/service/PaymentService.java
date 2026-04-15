@@ -47,19 +47,19 @@ public class PaymentService {
             throw new IllegalArgumentException("courseID and studentEmail are required.");
         }
 
-        Invoice invoice = createPendingInvoice(amount);
         Course course = courseDAO.findById(courseID, Course.class);
         if (course == null) {
             throw new IllegalArgumentException("Course not found: " + courseID);
         }
         Student student = resolveOrCreateStudentByEmail(studentEmail);
+        Invoice invoice = createPendingInvoice(amount);
 
         Payment payment = new Payment();
         payment.setPaymentID(generatePaymentId());
         payment.setInvoice(invoice);
         payment.setCourse(course);
         payment.setStudent(student);
-        payment.setAmount(amount);
+        payment.setAmount(resolveTransactionAmount(amount));
         payment.setMethod(method.name());
         payment.setTransactionRef(generateTransactionRef(method));
         payment.setPaymentDate(LocalDateTime.now());
@@ -83,7 +83,7 @@ public class PaymentService {
         Payment payment = new Payment();
         payment.setPaymentID(generatePaymentId());
         payment.setInvoice(invoice);
-        payment.setAmount(invoice.getTotalAmount());
+        payment.setAmount(resolveTransactionAmount(invoice));
         payment.setMethod(method.name());
         payment.setTransactionRef(generateTransactionRef(method));
         payment.setPaymentDate(LocalDateTime.now());
@@ -172,17 +172,20 @@ public class PaymentService {
         if (payment.getStatus() == PaymentStatus.COMPLETED) {
             invoice.setStatus(InvoiceStatus.PAID);
             invoice.setPaidAt(LocalDateTime.now());
+            invoice.setTotalAmount(resolveInvoiceAmount(payment, invoice));
             invoiceDAO.update(invoice);
             return;
         }
 
         if (payment.getStatus() == PaymentStatus.REFUNDED) {
             invoice.setStatus(InvoiceStatus.CANCELLED);
+            invoice.setPaidAt(null);
             invoiceDAO.update(invoice);
             return;
         }
 
         invoice.setStatus(InvoiceStatus.UNPAID);
+        invoice.setPaidAt(null);
         invoiceDAO.update(invoice);
     }
 
@@ -205,14 +208,16 @@ public class PaymentService {
         }
         try {
             EnrollmentFacade.EnrollmentResult result = EnrollmentFacade.getInstance()
-                    .enrollStudent(clazz.getClassID(), studentEmail);
+                    .enrollStudent(clazz.getClassID(), studentEmail, payment.getInvoice());
             if (result != null && result.getInvoice() != null) {
                 payment.setInvoice(result.getInvoice());
+                payment.setAmount(resolveTransactionAmount(result.getInvoice()));
                 payment.setNote("Payment completed and enrollment created.");
             }
         } catch (IllegalStateException | IllegalArgumentException ex) {
             payment.setStatus(PaymentStatus.FAILED);
             payment.setNote("Payment done but enrollment failed: " + ex.getMessage());
+            syncInvoiceStatus(payment);
         }
     }
 
@@ -224,11 +229,32 @@ public class PaymentService {
         Invoice invoice = new Invoice();
         invoice.setInvoiceNumber("INV-PAY-" + System.currentTimeMillis() + "-"
                 + UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase());
-        invoice.setTotalAmount(amount);
+        invoice.setTotalAmount(resolveTransactionAmount(amount));
         invoice.setStatus(InvoiceStatus.UNPAID);
         invoice.setCreatedAt(LocalDateTime.now());
         invoiceDAO.insert(invoice);
         return invoice;
+    }
+
+    private Double resolveTransactionAmount(Invoice invoice) {
+        if (invoice == null) {
+            return null;
+        }
+        return resolveTransactionAmount(invoice.getTotalAmount());
+    }
+
+    private Double resolveTransactionAmount(Double amount) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Invoice amount must be greater than 0.");
+        }
+        return amount;
+    }
+
+    private Double resolveInvoiceAmount(Payment payment, Invoice invoice) {
+        if (invoice != null && invoice.getTotalAmount() != null && invoice.getTotalAmount() > 0) {
+            return invoice.getTotalAmount();
+        }
+        return resolveTransactionAmount(payment == null ? null : payment.getAmount());
     }
 
     private String generatePaymentId() {
