@@ -66,6 +66,10 @@ public class EnrollmentFacade {
      * @throws IllegalStateException nếu lớp CLOSED hoặc đã đóng
      */
     public EnrollmentResult enrollStudent(String classID, String studentEmail) {
+        return enrollStudent(classID, studentEmail, null);
+    }
+
+    public EnrollmentResult enrollStudent(String classID, String studentEmail, Invoice existingInvoice) {
         String normalizedClassID = normalize(classID);
         String normalizedEmail = normalize(studentEmail);
 
@@ -130,14 +134,22 @@ public class EnrollmentFacade {
             }
 
             // ========== BƯỚC 5: TẠO INVOICE ==========
-            Invoice invoice = new Invoice();
-            invoice.setInvoiceNumber(generateInvoiceNumber());
+            Invoice invoice = existingInvoice == null ? new Invoice() : existingInvoice;
+            if (invoice.getInvoiceNumber() == null || invoice.getInvoiceNumber().isBlank()) {
+                invoice.setInvoiceNumber(generateInvoiceNumber());
+            }
             invoice.setEnrollment(enrollment);
             enrollment.setInvoice(invoice);
             invoice.setTotalAmount(totalFee);
-            invoice.setStatus(InvoiceStatus.UNPAID);
-            invoice.setCreatedAt(LocalDateTime.now());
-            em.persist(invoice);
+            if (invoice.getCreatedAt() == null) {
+                invoice.setCreatedAt(LocalDateTime.now());
+            }
+            if (existingInvoice == null) {
+                invoice.setStatus(InvoiceStatus.UNPAID);
+                em.persist(invoice);
+            } else {
+                em.merge(invoice);
+            }
 
             // ========== BƯỚC 6: COMMIT ĐỒNG THỜI ==========
             em.merge(clazz);
